@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -18,7 +18,7 @@ import {
   PanelLeftOpen,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { RoleId } from '../lib/roles'
+import { RoleId, RoleName, type RoleIdValue } from '../lib/roles'
 import { ChatAssistant } from '../components/ChatAssistant'
 import { GlobalTopBar } from '../components/GlobalTopBar'
 import { useTheme } from '../context/ThemeContext'
@@ -46,6 +46,24 @@ export function ProtectedLayout() {
   const { theme } = useTheme()
 
   const location = useLocation()
+
+  // Prep work for role-specific UI (Customer vs Surveyor look
+  // different, per team decision) - mirrors the existing data-theme
+  // attribute pattern. Does nothing visually on its own until CSS
+  // rules actually target [data-role="..."] - safe to merge now,
+  // fills in once the Surveyor design is finalized.
+  useEffect(() => {
+    if (roleId && RoleName[roleId as RoleIdValue]) {
+      document.documentElement.setAttribute(
+        'data-role',
+        RoleName[roleId as RoleIdValue].toLowerCase(),
+      )
+    }
+
+    return () => {
+      document.documentElement.removeAttribute('data-role')
+    }
+  }, [roleId])
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
