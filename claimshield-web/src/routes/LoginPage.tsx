@@ -2,29 +2,45 @@ import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
+  AlertCircle,
   ArrowRight,
   Car,
   Eye,
   EyeOff,
   LockKeyhole,
   Mail,
-  Search,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
-const FAST_TRACK_TAGS = ["Minor dents", "Windshield & glass", "Scratches"];
-
-const TIMELINE_STEPS = [
-  { time: "00:00", title: "Photos", detail: "Four guided angles of the damage." },
-  { time: "00:06", title: "AI check", detail: "Damage detected and priced." },
-  { time: "00:14", title: "Approved", detail: "No surveyor visit needed." },
-  { time: "00:28", title: "Settled", detail: "Paid into your account." },
+const STEPPER_STAGES = [
+  { time: "00:00", label: "Raise claim" },
+  { time: "00:06", label: "Smart survey" },
+  { time: "00:14", label: "Review & approve" },
+  { time: "00:28", label: "Get paid" },
 ];
 
-const TRUST_STATS = [
-  { value: "1.2M", label: "OD claims settled" },
-  { value: "28 min", label: "median TAT" },
-  { value: "98.4%", label: "approved first pass" },
+const STEP_CARDS = [
+  {
+    step: "STEP 01 · 00:00",
+    title: "Snap the damage",
+    detail: "Four guided angles at the scene.",
+  },
+  {
+    step: "STEP 02 · 00:06",
+    title: "AI assessment",
+    detail: "Dent, glass or scratch priced in seconds.",
+  },
+  {
+    step: "STEP 03 · 00:14",
+    title: "Approval",
+    detail: "Straight-through, no surveyor visit.",
+  },
+  {
+    step: "STEP 04 · 00:28",
+    title: "Settled",
+    detail: "Paid to your bank inside 30 minutes.",
+    highlight: true,
+  },
 ];
 
 export function LoginPage() {
@@ -38,6 +54,11 @@ export function LoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [mode, setMode] = useState<"login" | "forgot" | "forgot-sent">("login");
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -76,11 +97,43 @@ export function LoginPage() {
     }
   };
 
+  const handleForgotPassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setResetError("");
+
+    if (!resetEmail.trim()) {
+      setResetError("Please enter your email address.");
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      // Supabase deliberately doesn't reveal whether the email exists
+      // - it always resolves the same way for security, so we show
+      // the same generic confirmation regardless.
+      await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+        redirectTo: `${window.location.origin}/login`,
+      });
+
+      setMode("forgot-sent");
+    } catch (err) {
+      console.error("Password reset error:", err);
+      setResetError("Unable to send reset instructions right now. Please try again.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <>
       <style>{`
         /* =========================================================
-           CLAIMSHIELD+ LOGIN — FAST TRACK ORANGE THEME
+           CLAIMSHIELD+ LOGIN — FAST TRACK SETTLEMENT CONSOLE
+           Dark navy-blue console (not black) + form as an
+           overlapping card. Accent color pulls from the global
+           theme variables, so it follows the orange/green toggle.
            ========================================================= */
 
         * { box-sizing: border-box; }
@@ -88,9 +141,12 @@ export function LoginPage() {
         html, body, #root { margin: 0; width: 100%; min-height: 100%; }
 
         :root {
-          --cs-primary: #dd4a2f;
-          --cs-primary-dark: #b8371f;
-          --cs-primary-soft: rgba(221, 74, 47, 0.12);
+          --cs-primary: var(--color-primary, #ff9736);
+          --cs-primary-dark: var(--color-primary-dark, #e67a1f);
+          --cs-primary-soft: rgba(var(--color-primary-rgb, 255, 151, 54), 0.14);
+          --cs-navy: #0e1f36;
+          --cs-navy-deep: #081226;
+          --cs-navy-line: rgba(255, 255, 255, 0.1);
           --cs-ink: #1a1410;
           --cs-muted: #6b7280;
           --cs-border: #e7e2dc;
@@ -98,482 +154,576 @@ export function LoginPage() {
 
         .cs-login-page {
           width: 100%;
-          height: 100vh;
-          height: 100dvh;
+          min-height: 100vh;
+          min-height: 100dvh;
           display: flex;
-          overflow: hidden;
-          background: #ffffff;
-          font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-          color: var(--cs-ink);
+          align-items: stretch;
+          background: var(--cs-navy);
         }
 
-        /* =========================================================
-           LEFT — FAST TRACK HERO PANEL
-           ========================================================= */
+        /* =====================================================
+           LEFT — dark console (header, TAT box, stepper, cards)
+           ===================================================== */
 
-        .cs-hero {
-          position: relative;
-          width: 42%;
-          min-width: 340px;
-          padding: 26px 34px;
-          background: linear-gradient(160deg, var(--cs-primary) 0%, var(--cs-primary-dark) 100%);
-          color: #ffffff;
+        .cs-console {
+          flex: 1.35;
+          min-width: 0;
           display: flex;
           flex-direction: column;
-          overflow: hidden;
+          padding: 28px 40px 40px;
+          color: #ffffff;
+          position: relative;
         }
 
-        .cs-hero-brand {
+        .cs-console-header {
           display: flex;
           align-items: center;
-          gap: 7px;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
+          justify-content: space-between;
+          padding-bottom: 20px;
+          margin-bottom: 28px;
+          border-bottom: 1px solid var(--cs-navy-line);
         }
 
-        .cs-hero-eyebrow {
-          margin-top: 10px;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
+        .cs-console-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 15px;
+          font-weight: 800;
+          letter-spacing: 0.02em;
+        }
+
+        .cs-console-brand svg { color: var(--cs-primary); }
+
+        .cs-console-status {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 12px;
+          font-weight: 600;
           color: rgba(255, 255, 255, 0.75);
         }
 
-        .cs-hero-headline {
-          margin: 8px 0 0;
-          font-size: clamp(32px, 3.6vw, 46px);
-          line-height: 0.95;
-          font-weight: 800;
-          letter-spacing: -0.02em;
+        .cs-console-status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--cs-primary);
+          box-shadow: 0 0 8px var(--cs-primary);
         }
 
-        .cs-hero-copy {
-          margin: 10px 0 0;
-          max-width: 34ch;
-          font-size: 12.5px;
-          line-height: 1.5;
-          color: rgba(255, 255, 255, 0.88);
-        }
-
-        .cs-hero-rule {
-          margin: 16px 0;
-          height: 1px;
-          background: rgba(255, 255, 255, 0.25);
-        }
-
-        /* Two-timelines comparison card */
-
-        .cs-timeline-card {
-          background: #ffffff;
-          color: var(--cs-ink);
-          border-radius: 12px;
-          padding: 14px 16px 12px;
-          box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
-        }
-
-        .cs-timeline-eyebrow {
-          font-size: 9.5px;
-          font-weight: 800;
-          letter-spacing: 0.08em;
+        .cs-console-eyebrow {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: var(--cs-muted);
-          margin-bottom: 8px;
-        }
-
-        .cs-timeline-row {
-          display: grid;
-          grid-template-columns: 46px 1fr 50px;
-          align-items: center;
-          gap: 8px;
+          color: var(--cs-primary);
           margin-bottom: 6px;
         }
 
-        .cs-timeline-row:last-child { margin-bottom: 0; }
+        .cs-console-headline {
+          font-size: clamp(44px, 6vw, 68px);
+          font-weight: 800;
+          line-height: 1;
+          margin: 0 0 8px;
+        }
 
-        .cs-timeline-label {
-          font-size: 10.5px;
+        .cs-console-sub {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.65);
+          margin: 0 0 28px;
+        }
+
+        .cs-console-sub b { color: rgba(255, 255, 255, 0.9); }
+
+        /* Stepper */
+
+        .cs-stepper {
+          margin-bottom: 26px;
+        }
+
+        .cs-stepper-labels {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          margin-bottom: 10px;
+        }
+
+        .cs-stepper-labels span {
+          font-size: 13px;
           font-weight: 700;
-          color: var(--cs-muted);
+          color: rgba(255, 255, 255, 0.55);
         }
 
-        .cs-timeline-track {
+        .cs-stepper-labels span.is-active {
+          color: var(--cs-primary);
+        }
+
+        .cs-stepper-track {
+          position: relative;
           height: 6px;
-          border-radius: 6px;
-          background: #eee9e4;
-          overflow: hidden;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.12);
+          margin-bottom: 8px;
         }
 
-        .cs-timeline-fill {
+        .cs-stepper-fill {
+          position: absolute;
+          top: 0;
+          left: 0;
           height: 100%;
-          border-radius: 6px;
-          background: #d8d4cf;
-        }
-
-        .cs-timeline-fill.is-fast {
+          border-radius: 999px;
           background: var(--cs-primary);
         }
 
-        .cs-timeline-value {
-          font-size: 10.5px;
-          font-weight: 800;
-          text-align: right;
-          color: var(--cs-ink);
-        }
-
-        /* Bottom step strip */
-
-        .cs-hero-steps {
-          margin-top: auto;
-          padding-top: 16px;
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 10px;
-        }
-
-        .cs-hero-step-time {
-          font-size: 11px;
-          font-weight: 800;
-          margin-bottom: 2px;
-        }
-
-        .cs-hero-step-title {
-          font-size: 11px;
-          font-weight: 700;
-          margin-bottom: 2px;
-        }
-
-        .cs-hero-step-detail {
-          font-size: 10px;
-          line-height: 1.3;
-          color: rgba(255, 255, 255, 0.72);
-        }
-
-        /* =========================================================
-           RIGHT — LOGIN PANEL
-           ========================================================= */
-
-        .cs-form-area {
-          flex: 1;
+        .cs-stepper-marker {
+          position: absolute;
+          top: 50%;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: var(--cs-navy);
+          border: 2px solid var(--cs-primary);
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 20px 28px;
-          overflow-y: auto;
+          transform: translate(-50%, -50%);
+        }
+
+        .cs-stepper-marker svg {
+          width: 12px;
+          height: 12px;
+          color: var(--cs-primary);
+        }
+
+        .cs-stepper-times {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+        }
+
+        .cs-stepper-times span {
+          font-size: 11px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.4);
+          letter-spacing: 0.04em;
+        }
+
+        .cs-stepper-times span.is-active {
+          color: var(--cs-primary);
+        }
+
+        /* TAT stat */
+
+        .cs-tat {
+          padding-bottom: 22px;
+          margin-bottom: 22px;
+          border-bottom: 1px solid var(--cs-navy-line);
+        }
+
+        .cs-tat-label {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.45);
+          margin-bottom: 6px;
+        }
+
+        .cs-tat-value {
+          display: flex;
+          align-items: baseline;
+          gap: 14px;
+          flex-wrap: wrap;
+        }
+
+        .cs-tat-value strong {
+          font-size: 44px;
+          font-weight: 800;
+          color: var(--cs-primary);
+          line-height: 1;
+        }
+
+        .cs-tat-value p {
+          margin: 0;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.55);
+          max-width: 260px;
+        }
+
+        /* Step cards */
+
+        .cs-step-cards {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
+          margin-top: auto;
+        }
+
+        .cs-step-card {
+          padding: 14px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--cs-navy-line);
+        }
+
+        .cs-step-card.is-highlight {
+          background: var(--cs-primary);
+          border-color: var(--cs-primary);
+        }
+
+        .cs-step-card-tag {
+          display: block;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.5);
+          margin-bottom: 8px;
+        }
+
+        .cs-step-card.is-highlight .cs-step-card-tag {
+          color: rgba(255, 255, 255, 0.85);
+        }
+
+        .cs-step-card-title {
+          display: block;
+          font-size: 14px;
+          font-weight: 700;
+          margin-bottom: 4px;
+        }
+
+        .cs-step-card-detail {
+          display: block;
+          font-size: 12px;
+          line-height: 1.4;
+          color: rgba(255, 255, 255, 0.55);
+        }
+
+        .cs-step-card.is-highlight .cs-step-card-detail {
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* =====================================================
+           RIGHT — overlapping white login card
+           ===================================================== */
+
+        .cs-form-area {
+          flex: 0 0 420px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 32px;
         }
 
         .cs-login-card {
           width: 100%;
-          max-width: 320px;
+          max-width: 360px;
+          background: #fdfcfb;
+          border-radius: 16px;
+          padding: 28px;
+          box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
         }
 
         .cs-eyebrow {
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 0.08em;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
           color: var(--cs-muted);
+          margin-bottom: 6px;
         }
 
         .cs-login-card h1 {
-          margin: 5px 0 4px;
-          font-size: 22px;
-          font-weight: 800;
-          letter-spacing: -0.01em;
+          margin: 0 0 16px;
+          font-size: 24px;
+          color: var(--cs-ink);
         }
 
         .cs-login-sub {
-          margin: 0 0 14px;
-          font-size: 12px;
-          line-height: 1.45;
+          margin: 0 0 16px;
+          font-size: 13px;
           color: var(--cs-muted);
+          line-height: 1.4;
         }
 
-        .cs-form { display: flex; flex-direction: column; gap: 10px; }
+        .cs-alert {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 12px 14px;
+          border-radius: 10px;
+          background: var(--cs-primary-soft);
+          border: 1px solid var(--cs-primary);
+          margin-bottom: 16px;
+          font-size: 12.5px;
+          line-height: 1.4;
+          color: var(--cs-primary-dark);
+        }
+
+        .cs-alert svg {
+          flex-shrink: 0;
+          margin-top: 1px;
+          color: var(--cs-primary);
+        }
+
+        .cs-form { display: flex; flex-direction: column; gap: 14px; }
 
         .cs-label {
           display: block;
-          margin-bottom: 4px;
-          font-size: 10px;
+          font-size: 10.5px;
           font-weight: 700;
-          letter-spacing: 0.03em;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
           color: var(--cs-muted);
+          margin-bottom: 6px;
         }
 
-        .cs-input-wrapper { position: relative; width: 100%; }
-
-        .cs-input-icon {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #9a9389;
-          pointer-events: none;
-        }
-
-        .cs-input {
-          width: 100%;
-          height: 40px;
-          padding: 0 12px 0 38px;
-          border: 1px solid var(--cs-border);
-          border-radius: 9px;
-          background: #fafaf9;
-          color: var(--cs-ink);
-          font-size: 13px;
-          outline: none;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        }
-
-        .cs-input::placeholder { color: #a39c92; }
-        .cs-input:hover { border-color: #d8d0c6; }
-        .cs-input:focus {
-          border-color: var(--cs-primary);
-          background: #ffffff;
-          box-shadow: 0 0 0 3px var(--cs-primary-soft);
-        }
-        .cs-input:disabled { background: #f1efec; cursor: not-allowed; }
-
-        .cs-password-input { padding-right: 40px; }
-
-        .cs-password-button {
-          position: absolute;
-          right: 11px;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 22px;
-          height: 22px;
+        .cs-input-wrapper {
           display: flex;
           align-items: center;
-          justify-content: center;
-          padding: 0;
-          border: 0;
+          gap: 8px;
+          padding: 0 12px;
+          border: 1px solid var(--cs-border);
+          border-radius: 10px;
+          background: #ffffff;
+        }
+
+        .cs-input-wrapper:focus-within {
+          border-color: var(--cs-primary);
+          box-shadow: 0 0 0 3px var(--cs-primary-soft);
+        }
+
+        .cs-input-wrapper.cs-input-error {
+          border-color: var(--cs-primary);
+          box-shadow: 0 0 0 3px var(--cs-primary-soft);
+        }
+
+        .cs-input-icon { flex-shrink: 0; color: var(--cs-muted); }
+
+        .cs-input {
+          flex: 1;
+          border: none;
           background: transparent;
-          color: #9a9389;
+          padding: 11px 0;
+          font-size: 14px;
+          color: var(--cs-ink);
+          min-width: 0;
+        }
+
+        .cs-input:focus { outline: none; }
+
+        .cs-password-button {
+          flex-shrink: 0;
+          background: transparent;
+          border: none;
+          padding: 4px;
+          color: var(--cs-muted);
           cursor: pointer;
         }
 
-        .cs-password-button:hover { color: var(--cs-primary); }
+        .cs-field-error {
+          margin: 4px 0 0;
+          font-size: 11.5px;
+          font-weight: 600;
+          color: var(--cs-primary-dark);
+        }
+
+        .cs-remember-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
 
         .cs-remember {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          font-size: 11px;
+          font-size: 12px;
           font-weight: 600;
           color: #4a453f;
           cursor: pointer;
         }
 
         .cs-checkbox {
-          width: 14px;
-          height: 14px;
-          margin: 0;
+          width: 15px;
+          height: 15px;
           accent-color: var(--cs-primary);
+        }
+
+        .cs-forgot-link {
+          margin: 0;
+          padding: 0;
+          background: transparent;
+          border: none;
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--cs-primary);
+          text-decoration: underline;
+          flex-shrink: 0;
           cursor: pointer;
         }
 
+        .cs-forgot-link:hover { color: var(--cs-primary-dark); }
+
         .cs-error {
-          padding: 8px 10px;
-          border: 1px solid #f3c6bb;
-          border-radius: 9px;
-          background: #fdf1ee;
-          color: var(--cs-primary-dark);
-          font-size: 11px;
-          line-height: 1.4;
+          font-size: 12px;
+          font-weight: 600;
+          color: #b3261e;
         }
 
         .cs-submit {
-          width: 100%;
-          height: 42px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 7px;
-          border: 0;
-          border-radius: 9px;
-          background: linear-gradient(135deg, var(--cs-primary) 0%, var(--cs-primary-dark) 100%);
+          gap: 8px;
+          padding: 13px;
+          border: none;
+          border-radius: 10px;
+          background: var(--cs-primary);
           color: #ffffff;
-          font-size: 13px;
+          font-size: 14.5px;
           font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 10px 22px rgba(221, 74, 47, 0.28);
-          transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
         }
 
-        .cs-submit:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 13px 26px rgba(221, 74, 47, 0.34);
-        }
-
+        .cs-submit:hover { background: var(--cs-primary-dark); }
         .cs-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
-        .cs-track-button {
-          width: 100%;
-          height: 42px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 7px;
-          border: 1px solid var(--cs-border);
-          border-radius: 9px;
-          background: #ffffff;
-          color: var(--cs-ink);
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: border-color 0.2s ease, background 0.2s ease;
-        }
-
-        .cs-track-button:hover { border-color: #d8d0c6; background: #fafaf9; }
-
         .cs-spinner {
-          width: 14px;
-          height: 14px;
+          width: 15px;
+          height: 15px;
+          border-radius: 50%;
           border: 2px solid rgba(255, 255, 255, 0.4);
           border-top-color: #ffffff;
-          border-radius: 50%;
-          animation: cs-spin 0.8s linear infinite;
+          animation: cs-spin 0.7s linear infinite;
         }
 
         @keyframes cs-spin { to { transform: rotate(360deg); } }
 
-        .cs-fast-track {
-          margin-top: 14px;
-          padding-top: 12px;
-          border-top: 1px solid var(--cs-border);
-        }
-
-        .cs-tags {
-          margin-top: 8px;
+        .cs-track-button {
           display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
-        .cs-tag {
-          padding: 4px 9px;
-          border-radius: 999px;
-          background: var(--cs-primary-soft);
-          color: var(--cs-primary-dark);
-          font-size: 10px;
-          font-weight: 700;
-        }
-
-        .cs-stats {
-          margin-top: 12px;
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-        }
-
-        .cs-stat { text-align: left; }
-        .cs-stat + .cs-stat { border-left: 1px solid var(--cs-border); padding-left: 10px; }
-
-        .cs-stat-value {
-          font-size: 15px;
-          font-weight: 800;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 12px;
+          border-radius: 10px;
+          background: transparent;
+          border: 1px solid var(--cs-border);
           color: var(--cs-ink);
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
         }
 
-        .cs-stat-label {
-          margin-top: 1px;
-          font-size: 9px;
-          color: var(--cs-muted);
+        .cs-forgot-sent {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
         }
 
-        .cs-footer {
-          margin-top: 12px;
-          padding-top: 10px;
-          border-top: 1px solid var(--cs-border);
-          font-size: 9px;
-          color: #a39c92;
+        .cs-forgot-sent-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: var(--cs-primary-soft);
+          color: var(--cs-primary);
+          margin-bottom: 4px;
         }
 
-        /* =========================================================
-           RESPONSIVE
-           ========================================================= */
+        .cs-forgot-sent .cs-submit { margin-top: 8px; width: 100%; }
 
         @media (max-width: 980px) {
-          .cs-hero-steps { grid-template-columns: repeat(2, 1fr); row-gap: 14px; }
-        }
-
-        @media (max-width: 860px) {
-          .cs-login-page { flex-direction: column; height: auto; min-height: 100vh; min-height: 100dvh; overflow-y: auto; }
-          .cs-hero { width: 100%; min-width: 0; padding: 28px 22px; }
-          .cs-hero-headline { font-size: clamp(36px, 10vw, 50px); }
-          .cs-form-area { padding: 28px 20px 36px; overflow-y: visible; }
+          .cs-login-page { flex-direction: column; height: auto; min-height: 100vh; min-height: 100dvh; }
+          .cs-step-cards { grid-template-columns: repeat(2, 1fr); }
+          .cs-form-area { flex: none; padding: 24px; }
+          .cs-console { padding: 24px; }
         }
       `}</style>
 
       <main className="cs-login-page">
         {/* =====================================================
-            LEFT — FAST TRACK HERO
+            LEFT — dark settlement console
             ===================================================== */}
-        <section className="cs-hero">
-          <div className="cs-hero-brand">
-            <Car size={16} />
-            Claims Shield+
+        <section className="cs-console">
+          <div className="cs-console-header">
+            <span className="cs-console-brand">
+              <Car size={18} />
+              CLAIMSHIELD+
+            </span>
+            <span className="cs-console-status">
+              Fast Track desk: open
+              <span className="cs-console-status-dot" />
+            </span>
           </div>
 
-          <div className="cs-hero-eyebrow">Fast track OD claim settlement</div>
-
-          <motion.h1
-            className="cs-hero-headline"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            30
-            <br />
-            Minutes.
-          </motion.h1>
-
-          <p className="cs-hero-copy">
-            Not 5&ndash;7 days. Dents, windshield glass and scratches, settled while you wait.
+          <div className="cs-console-eyebrow">Fast track OD settlement</div>
+          <h1 className="cs-console-headline">30 min</h1>
+          <p className="cs-console-sub">
+            Median settled at <b>00:28</b> · industry usually takes <b>5–7 days</b>.
           </p>
 
-          <div className="cs-hero-rule" />
-
-          <motion.div
-            className="cs-timeline-card"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.4 }}
-          >
-            <div className="cs-timeline-eyebrow">Same claim, two timelines</div>
-
-            <div className="cs-timeline-row">
-              <span className="cs-timeline-label">Industry</span>
-              <div className="cs-timeline-track">
-                <div className="cs-timeline-fill" style={{ width: "100%" }} />
-              </div>
-              <span className="cs-timeline-value">5&ndash;7 days</span>
+          <div className="cs-stepper">
+            <div className="cs-stepper-labels">
+              {STEPPER_STAGES.map((stage, i) => (
+                <span key={stage.label} className={i === 0 ? "is-active" : ""}>
+                  {stage.label}
+                </span>
+              ))}
             </div>
 
-            <div className="cs-timeline-row">
-              <span className="cs-timeline-label">Shield+</span>
-              <div className="cs-timeline-track">
-                <div className="cs-timeline-fill is-fast" style={{ width: "8%" }} />
-              </div>
-              <span className="cs-timeline-value">30 min</span>
+            <div className="cs-stepper-track">
+              <motion.div
+                className="cs-stepper-fill"
+                initial={{ width: "0%" }}
+                animate={{ width: "22%" }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
+              <motion.div
+                className="cs-stepper-marker"
+                initial={{ left: "0%" }}
+                animate={{ left: "22%" }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
+                <Car />
+              </motion.div>
             </div>
-          </motion.div>
 
-          <div className="cs-hero-steps">
-            {TIMELINE_STEPS.map((step) => (
-              <div key={step.title}>
-                <div className="cs-hero-step-time">{step.time}</div>
-                <div className="cs-hero-step-title">{step.title}</div>
-                <div className="cs-hero-step-detail">{step.detail}</div>
+            <div className="cs-stepper-times">
+              {STEPPER_STAGES.map((stage, i) => (
+                <span key={stage.time} className={i === 0 ? "is-active" : ""}>
+                  {stage.time}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="cs-tat">
+            <div className="cs-tat-label">Median settled at</div>
+            <div className="cs-tat-value">
+              <strong>00:28</strong>
+              <p>Minutes from first photo to money in the account — not the usual 5–7 days.</p>
+            </div>
+          </div>
+
+          <div className="cs-step-cards">
+            {STEP_CARDS.map((card) => (
+              <div
+                key={card.title}
+                className={`cs-step-card${card.highlight ? " is-highlight" : ""}`}
+              >
+                <span className="cs-step-card-tag">{card.step}</span>
+                <span className="cs-step-card-title">{card.title}</span>
+                <span className="cs-step-card-detail">{card.detail}</span>
               </div>
             ))}
           </div>
         </section>
 
         {/* =====================================================
-            RIGHT — LOGIN FORM
+            RIGHT — overlapping login form card
             ===================================================== */}
         <section className="cs-form-area">
           <motion.div
@@ -582,119 +732,169 @@ export function LoginPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
           >
-            <div className="cs-eyebrow">Customer login</div>
-            <h1>Welcome back.</h1>
-            <p className="cs-login-sub">
-              Policyholders only. Third-party claimants use this form.
-            </p>
-
-            <form onSubmit={handleLogin} className="cs-form">
-              <div>
-                <label htmlFor="email" className="cs-label">
-                  Email address
-                </label>
-                <div className="cs-input-wrapper">
-                  <Mail size={17} className="cs-input-icon" />
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="you@example.com"
-                    disabled={loading}
-                    className="cs-input"
-                  />
+            {mode === "forgot-sent" ? (
+              <div className="cs-forgot-sent">
+                <div className="cs-forgot-sent-icon">
+                  <Mail size={24} />
                 </div>
+                <h1>Check your email</h1>
+                <p className="cs-login-sub">
+                  If an account exists for <strong>{resetEmail}</strong>, we've sent
+                  password reset instructions to your registered email.
+                </p>
+                <button type="button" className="cs-submit" onClick={() => setMode("login")}>
+                  Back to sign in
+                  <ArrowRight size={16} />
+                </button>
               </div>
+            ) : mode === "forgot" ? (
+              <>
+                <div className="cs-eyebrow">Reset password</div>
+                <h1>Forgot your password?</h1>
+                <p className="cs-login-sub">
+                  Enter your registered email and we'll send you instructions to reset it.
+                </p>
 
-              <div>
-                <label htmlFor="password" className="cs-label">
-                  Password
-                </label>
-                <div className="cs-input-wrapper">
-                  <LockKeyhole size={17} className="cs-input-icon" />
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Enter password"
-                    disabled={loading}
-                    className="cs-input cs-password-input"
-                  />
-                  <button
-                    type="button"
-                    className="cs-password-button"
-                    onClick={() => setShowPassword((value) => !value)}
-                    disabled={loading}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                  </button>
-                </div>
-              </div>
-
-              <label className="cs-remember">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(event) => setRememberMe(event.target.checked)}
-                  className="cs-checkbox"
-                />
-                Keep me signed in on this device
-              </label>
-
-              {error && <div className="cs-error">{error}</div>}
-
-              <button type="submit" disabled={loading} className="cs-submit">
-                {loading ? (
-                  <>
-                    <span className="cs-spinner" />
-                    Signing in&hellip;
-                  </>
-                ) : (
-                  <>
-                    Sign in
-                    <ArrowRight size={16} />
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                className="cs-track-button"
-                onClick={() => navigate("/track-claim")}
-              >
-                <Search size={15} />
-                Track a claim without signing in
-              </button>
-            </form>
-
-            <div className="cs-fast-track">
-              <div className="cs-eyebrow">Eligible on fast track</div>
-              <div className="cs-tags">
-                {FAST_TRACK_TAGS.map((tag) => (
-                  <span key={tag} className="cs-tag">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="cs-stats">
-                {TRUST_STATS.map((stat) => (
-                  <div key={stat.label} className="cs-stat">
-                    <div className="cs-stat-value">{stat.value}</div>
-                    <div className="cs-stat-label">{stat.label}</div>
+                <form onSubmit={handleForgotPassword} className="cs-form">
+                  <div>
+                    <label htmlFor="resetEmail" className="cs-label">Email address</label>
+                    <div className="cs-input-wrapper">
+                      <Mail size={16} className="cs-input-icon" />
+                      <input
+                        id="resetEmail"
+                        type="email"
+                        autoComplete="email"
+                        value={resetEmail}
+                        onChange={(event) => setResetEmail(event.target.value)}
+                        placeholder="you@example.com"
+                        disabled={resetLoading}
+                        className="cs-input"
+                      />
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="cs-footer">IRDAI Reg. 158 &middot; 256-bit encrypted</div>
+                  {resetError && <div className="cs-error">{resetError}</div>}
+
+                  <button type="submit" disabled={resetLoading} className="cs-submit">
+                    {resetLoading ? (
+                      <>
+                        <span className="cs-spinner" />
+                        Sending&hellip;
+                      </>
+                    ) : (
+                      <>
+                        Send reset instructions
+                        <ArrowRight size={16} />
+                      </>
+                    )}
+                  </button>
+
+                  <button type="button" className="cs-track-button" onClick={() => setMode("login")}>
+                    Back to sign in
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <div className="cs-eyebrow">Customer sign-in</div>
+                <h1>Resume your claim</h1>
+
+                {error && (
+                  <div className="cs-alert">
+                    <AlertCircle size={16} />
+                    <span>
+                      <strong>{error}</strong>
+                    </span>
+                  </div>
+                )}
+
+                <form onSubmit={handleLogin} className="cs-form">
+                  <div>
+                    <label htmlFor="email" className="cs-label">Email address</label>
+                    <div className="cs-input-wrapper">
+                      <Mail size={16} className="cs-input-icon" />
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="you@example.com"
+                        disabled={loading}
+                        className="cs-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="password" className="cs-label">Password</label>
+                    <div className={`cs-input-wrapper${error ? " cs-input-error" : ""}`}>
+                      <LockKeyhole size={16} className="cs-input-icon" />
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        placeholder="Enter password"
+                        disabled={loading}
+                        className="cs-input cs-password-input"
+                      />
+                      <button
+                        type="button"
+                        className="cs-password-button"
+                        onClick={() => setShowPassword((value) => !value)}
+                        disabled={loading}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {error && <p className="cs-field-error">Incorrect password</p>}
+                  </div>
+
+                  <div className="cs-remember-row">
+                    <label className="cs-remember">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(event) => setRememberMe(event.target.checked)}
+                        className="cs-checkbox"
+                      />
+                      Keep me signed in
+                    </label>
+
+                    <button
+                      type="button"
+                      className="cs-forgot-link"
+                      onClick={() => {
+                        setResetEmail(email);
+                        setResetError("");
+                        setMode("forgot");
+                      }}
+                    >
+                      Reset password
+                    </button>
+                  </div>
+
+                  <button type="submit" disabled={loading} className="cs-submit">
+                    {loading ? (
+                      <>
+                        <span className="cs-spinner" />
+                        Signing in&hellip;
+                      </>
+                    ) : (
+                      <>
+                        Sign in
+                        <ArrowRight size={16} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </>
+            )}
           </motion.div>
         </section>
       </main>

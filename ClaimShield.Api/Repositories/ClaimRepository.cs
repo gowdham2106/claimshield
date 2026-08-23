@@ -29,6 +29,17 @@ namespace ClaimShield.Api.Repositories
                 .FirstOrDefaultAsync(c => c.ClaimId == claimId);
         }
 
+        // Used only by the public (unauthenticated) claim-tracking
+        // lookup - exact match, case-insensitive, since a customer
+        // typing a claim number by hand may not match casing exactly.
+        public async Task<Claim?> GetByClaimNumberAsync(string claimNumber)
+        {
+            return await _context.Claims
+                .Include(c => c.Vehicle)
+                .FirstOrDefaultAsync(c =>
+                    c.ClaimNumber.ToLower() == claimNumber.ToLower());
+        }
+
         public async Task<Claim?> GetByIdWithDetailsAsync(Guid claimId)
         {
             return await _context.Claims

@@ -210,7 +210,7 @@ export function CustomerDashboardPage() {
               <table className="queue-table">
                 <thead>
                   <tr>
-                    <th><Hash size={14} /> Claim No</th>
+                    <th>Claim No</th>
                     <th>Policy No</th>
                     <th>Vehicle No</th>
                     <th>Loss Date</th>

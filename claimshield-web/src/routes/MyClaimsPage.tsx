@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ApiError, getMyClaims, getMyCustomerProfile } from '../lib/api'
 import type { ClaimResponseDto } from '../lib/types'
 import { ClaimStatusBadge } from '../components/StatusBadge'
-import { Hash, Search, Eye, X } from 'lucide-react'
+import { Search, Eye, X } from 'lucide-react'
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString('en-IN', {
@@ -114,7 +114,7 @@ export function MyClaimsPage() {
             <table className="queue-table">
               <thead>
                 <tr>
-                  <th><Hash size={14} /> Claim No</th>
+                  <th>Claim No</th>
                   <th>Policy No</th>
                   <th>Vehicle No</th>
                   <th>Loss Date</th>

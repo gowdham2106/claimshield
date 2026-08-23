@@ -21,7 +21,7 @@ import { useAuth } from '../context/AuthContext'
 import { RoleId } from '../lib/roles'
 import { ChatAssistant } from '../components/ChatAssistant'
 import { GlobalTopBar } from '../components/GlobalTopBar'
-import { ClaimShieldLogo } from '../components/ClaimShieldLogo'
+import { useTheme } from '../context/ThemeContext'
 
 const SUPPORTED_ROLE_IDS: number[] = [
   RoleId.Customer,
@@ -42,6 +42,8 @@ export function ProtectedLayout() {
     displayName,
     signOut,
   } = useAuth()
+
+  const { theme } = useTheme()
 
   const location = useLocation()
 
@@ -119,7 +121,11 @@ export function ProtectedLayout() {
                 damping: 12,
               }}
             >
-              <ClaimShieldLogo size={28} />
+              <img
+                src={theme === 'green' ? '/claimshield-logo-green.png' : '/claimshield-logo-orange.png'}
+                alt="ClaimShield+"
+                className="brand-logo-img"
+              />
             </motion.span>
 
             <span className="brand-label">ClaimShield</span>

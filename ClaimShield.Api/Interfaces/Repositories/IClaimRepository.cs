@@ -8,6 +8,8 @@ namespace ClaimShield.Api.Interfaces.Repositories
 
         Task<Claim?> GetByIdAsync(Guid claimId);
 
+        Task<Claim?> GetByClaimNumberAsync(string claimNumber);
+
         // Phase 13 - includes Policy/Customer(.User)/Vehicle for the
         // Surveyor claim-detail header. Kept separate from GetByIdAsync so
         // the cheap access-check call sites elsewhere aren't paying for

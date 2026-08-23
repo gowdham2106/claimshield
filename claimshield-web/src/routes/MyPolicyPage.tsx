@@ -35,7 +35,6 @@ import {
   MapPin,
   ClipboardList,
   Eye,
-  Hash,
   Zap,
   ArrowRight,
 } from 'lucide-react'
@@ -514,7 +513,7 @@ export function MyPolicyPage() {
                               <table className="queue-table">
                                 <thead>
                                   <tr>
-                                    <th><Hash size={14} /> Claim No</th>
+                                    <th>Claim No</th>
                                     <th>Loss Date</th>
                                     <th>Status</th>
                                     <th></th>
