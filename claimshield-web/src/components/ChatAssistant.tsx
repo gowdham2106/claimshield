@@ -256,7 +256,7 @@ export function ChatAssistant() {
         whileTap={{ scale: 0.94 }}
         aria-label={open ? 'Close assistant' : 'Open assistant'}
       >
-        {open ? <X size={22} /> : <MovoAvatar size={30} />}
+        {open ? <X size={22} /> : <MovoAvatar size={38} />}
       </motion.button>
 
       <AnimatePresence>
@@ -270,7 +270,7 @@ export function ChatAssistant() {
           >
             <div className="chat-panel-header">
               <span className="chat-panel-header-icon">
-                <MovoAvatar size={26} />
+                <MovoAvatar size={32} />
                 <span className="chat-header-status-dot" />
               </span>
               <div className="chat-panel-header-text">
