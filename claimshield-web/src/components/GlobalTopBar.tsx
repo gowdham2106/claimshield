@@ -9,13 +9,11 @@ import {
   ClipboardList,
   ShieldCheck,
   Car,
-  Palette,
   CheckCircle2,
   XCircle,
   Wallet,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
 import { RoleId } from '../lib/roles'
 import { ClaimStatus, ClaimStatusName } from '../lib/statuses'
 import {
@@ -132,7 +130,6 @@ function saveSeenIds(ids: Set<string>) {
 export function GlobalTopBar({ roleId }: { roleId: number }) {
   const navigate = useNavigate()
   const { session } = useAuth()
-  const { theme, toggleTheme } = useTheme()
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -372,16 +369,6 @@ export function GlobalTopBar({ roleId }: { roleId: number }) {
             </button>
           )}
         </div>
-
-        <button
-          type="button"
-          className={`global-topbar-icon-button${theme === 'green' ? ' is-active-theme' : ''}`}
-          onClick={toggleTheme}
-          aria-label={theme === 'orange' ? 'Switch to Green & Blue theme' : 'Switch to Orange theme'}
-          title={theme === 'orange' ? 'Switch to Green & Blue theme' : 'Switch to Orange theme'}
-        >
-          <Palette size={16} />
-        </button>
 
         <div className="global-notif" ref={notifRef}>
           <button

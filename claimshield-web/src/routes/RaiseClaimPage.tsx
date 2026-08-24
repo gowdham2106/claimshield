@@ -42,6 +42,7 @@ import {
   getMyCustomerProfile,
   getMyPolicies,
   getMyVehicles,
+  getVehicleById,
   raiseClaimStep1,
   raiseClaimStep2,
   sendOtp,
@@ -63,6 +64,7 @@ import {
   VehicleLocationName,
   DocumentType,
 } from '../lib/statuses'
+import { TAMIL_NADU_CITIES } from '../lib/tamilNaduCities'
 
 import { WizardShell } from '../components/WizardShell'
 import { Modal } from '../components/Modal'
@@ -478,6 +480,9 @@ function Step1({
   const [locationOfLoss, setLocationOfLoss] =
     useState('')
 
+  const [showLocationSuggestions, setShowLocationSuggestions] =
+    useState(false)
+
   const [description, setDescription] =
     useState('')
 
@@ -568,6 +573,16 @@ function Step1({
 
   const minDate =
     selectedPolicy?.startDate.slice(0, 10)
+
+  // Up to 5 Tamil Nadu cities whose name starts with whatever the
+  // customer has typed so far (e.g. typing "C" surfaces Chennai,
+  // Coimbatore, Cuddalore...).
+  const locationSuggestions =
+    locationOfLoss.trim().length > 0
+      ? TAMIL_NADU_CITIES.filter((city) =>
+          city.toLowerCase().startsWith(locationOfLoss.trim().toLowerCase()),
+        ).slice(0, 5)
+      : []
 
   const handleMic = () => {
     const SpeechRecognitionCtor =
@@ -1006,7 +1021,7 @@ function Step1({
           </div>
         </div>
 
-        <div className="form-field">
+        <div className="form-field location-autocomplete-wrap">
           <label htmlFor="locationOfLoss">
             Location of Loss <span className="required-asterisk">*</span>
           </label>
@@ -1014,18 +1029,41 @@ function Step1({
           <input
             id="locationOfLoss"
             value={locationOfLoss}
-            onChange={(e) =>
-              setLocationOfLoss(
-                e.target.value,
-              )
+            onChange={(e) => {
+              setLocationOfLoss(e.target.value)
+              setShowLocationSuggestions(true)
+            }}
+            onFocus={() => setShowLocationSuggestions(true)}
+            onBlur={() =>
+              setTimeout(() => setShowLocationSuggestions(false), 120)
             }
+            autoComplete="off"
             required
           />
+
+          {showLocationSuggestions && locationSuggestions.length > 0 && (
+            <ul className="location-suggestions">
+              {locationSuggestions.map((city) => (
+                <li key={city}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setLocationOfLoss(city)
+                      setShowLocationSuggestions(false)
+                    }}
+                  >
+                    {city}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="form-field">
           <label htmlFor="description">
-            Description <span className="required-asterisk">*</span>
+            Loss Description <span className="required-asterisk">*</span>
           </label>
 
           <div
@@ -1325,6 +1363,30 @@ function Step2({
   const [error, setError] =
     useState<string | null>(null)
 
+  // The correct fallback for a failed OCR read is "what's already on
+  // file for THIS vehicle" - a hardcoded placeholder from an earlier
+  // test vehicle will mismatch as soon as a different vehicle is used
+  // (exactly the bug reported: chassis/engine shown didn't match the
+  // real CHASSIS.../ENGINE... numbers for this vehicle).
+  const [vehicleRecord, setVehicleRecord] =
+    useState<VehicleResponseDto | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    getVehicleById(vehicleId)
+      .then((data) => {
+        if (!cancelled) setVehicleRecord(data)
+      })
+      .catch(() => {
+        // Falls through to "Not detected" below if this fails too.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [vehicleId])
+
   // FIR is only required for loss types other than a minor accident
   // (theft, major accident, fire, natural calamities, etc.) - a
   // minor accident claim has nothing to file a police report about.
@@ -1340,16 +1402,10 @@ function Step2({
 
   const uploadedCount = requiredTypeIds.filter((typeId) => uploaded[typeId]).length
 
-  // Hard fallbacks so the popup never shows an empty value or a dash -
-  // used both when OCR returns nothing AND when it returns garbage
-  // text that merely happens to be non-empty (e.g. "No. Owner" picked
-  // up from a merged column header - that's a real string, not null,
-  // so a plain `|| fallback` wouldn't catch it; this checks the value
-  // actually looks like an ID number before trusting it).
-  const RC_NO_FALLBACK = 'TN74BC4444'
-  const CHASSIS_NO_FALLBACK = 'W1N1671196M004746'
-  const ENGINE_NO_FALLBACK = '65492081113164'
-
+  // Fallback so the popup never shows an empty value or a dash when
+  // OCR fails - uses this specific vehicle's actual stored numbers,
+  // not a hardcoded placeholder (which mismatches for any vehicle
+  // other than whichever one it was copied from).
   const isPlausibleIdNumber = (
     value: string | null | undefined,
     minDigits: number,
@@ -1361,15 +1417,15 @@ function Step2({
 
   const finalRcNo = isPlausibleIdNumber(rcOcr?.registrationNumber, 4)
     ? rcOcr!.registrationNumber!
-    : RC_NO_FALLBACK
+    : vehicleRecord?.registrationNumber || 'Not detected'
 
   const finalChassisNo = isPlausibleIdNumber(rcOcr?.chassisNumber, 8)
     ? rcOcr!.chassisNumber!
-    : CHASSIS_NO_FALLBACK
+    : vehicleRecord?.chassisNumber || 'Not detected'
 
   const finalEngineNo = isPlausibleIdNumber(rcOcr?.engineNumber, 5)
     ? rcOcr!.engineNumber!
-    : ENGINE_NO_FALLBACK
+    : vehicleRecord?.engineNumber || 'Not detected'
 
   const handleContinueClick = () => {
     if (!allUploaded) {
@@ -1390,11 +1446,13 @@ function Step2({
 
     // Persist the confirmed Chassis/Engine numbers onto the vehicle
     // record. Best-effort - claim verification proceeds regardless of
-    // whether this succeeds.
+    // whether this succeeds. Never send the "Not detected" placeholder
+    // itself - only send it if it's a real value (whether from OCR or
+    // the vehicle's own existing record).
     try {
       await confirmVehicleOcrDetails(vehicleId, {
-        chassisNumber: finalChassisNo,
-        engineNumber: finalEngineNo,
+        chassisNumber: finalChassisNo === 'Not detected' ? null : finalChassisNo,
+        engineNumber: finalEngineNo === 'Not detected' ? null : finalEngineNo,
       })
     } catch {
       // Non-critical.
