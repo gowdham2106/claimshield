@@ -648,5 +648,9 @@ app.MapControllers();
 // ============================================================
 // RUN
 // ============================================================
-
+app.MapGet("/", () => Results.Ok(new
+{
+    message = "ClaimShield API is running",
+    status = "healthy"
+}));
 app.Run();
