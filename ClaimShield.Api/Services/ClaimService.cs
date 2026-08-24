@@ -36,6 +36,55 @@ namespace ClaimShield.Api.Services
             return claims.Select(MapToDto);
         }
 
+        private static readonly Dictionary<int, string> PublicStatusNames = new()
+        {
+            [ClaimStatusConstants.Submitted] = "Submitted",
+            [ClaimStatusConstants.UnderReview] = "Under Review",
+            [ClaimStatusConstants.SurveyAssigned] = "Survey Assigned",
+            [ClaimStatusConstants.SurveyCompleted] = "Survey Completed",
+            [ClaimStatusConstants.RepairAssigned] = "Repair Assigned",
+            [ClaimStatusConstants.RepairInProgress] = "Repair In Progress",
+            [ClaimStatusConstants.Approved] = "Approved",
+            [ClaimStatusConstants.Rejected] = "Rejected",
+            [ClaimStatusConstants.Settled] = "Settled",
+            [ClaimStatusConstants.Closed] = "Closed",
+        };
+
+        // Public (unauthenticated) claim lookup - only ever returns the
+        // minimal PublicClaimTrackingDto fields, never the full claim.
+        // A production deployment of this should add rate-limiting on
+        // the controller action, since a bare claim number is
+        // guessable/enumerable without any login required.
+        public async Task<PublicClaimTrackingDto?> GetPublicTrackingInfoAsync(
+            string claimNumber)
+        {
+            if (string.IsNullOrWhiteSpace(claimNumber))
+            {
+                return null;
+            }
+
+            var claim = await _claimRepository.GetByClaimNumberAsync(claimNumber.Trim());
+
+            if (claim == null)
+            {
+                return null;
+            }
+
+            var vehicleReg = claim.Vehicle?.RegistrationNumber;
+
+            return new PublicClaimTrackingDto
+            {
+                ClaimNumber = claim.ClaimNumber,
+                StatusName = PublicStatusNames.TryGetValue(claim.StatusId ?? 0, out var name)
+                    ? name
+                    : "Unknown",
+                IncidentDate = claim.IncidentDate,
+                VehicleRegistrationMasked = string.IsNullOrEmpty(vehicleReg)
+                    ? null
+                    : $"****{vehicleReg[^Math.Min(4, vehicleReg.Length)..]}",
+            };
+        }
+
         public async Task<ClaimResponseDto?> GetClaimByIdAsync(Guid claimId)
         {
             var claim = await _claimRepository.GetByIdWithDetailsAsync(claimId);
