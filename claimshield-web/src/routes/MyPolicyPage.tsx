@@ -305,7 +305,7 @@ export function MyPolicyPage() {
                   <span className="policy-promo-bar-value">5–7 days</span>
                 </div>
                 <div className="policy-promo-bar-row">
-                  <span className="policy-promo-bar-label">Shield+</span>
+                  <span className="policy-promo-bar-label">claimshield+</span>
                   <span className="policy-promo-bar-track">
                     <span className="policy-promo-bar-fill is-fast" style={{ width: '8%' }} />
                   </span>

@@ -601,33 +601,31 @@ app.UseStaticFiles();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-
-    app.UseSwagger();
-
-    app.UseSwaggerUI(
-        options =>
-        {
-            options.DocumentTitle =
-                "ClaimShield API";
-
-            options.SwaggerEndpoint(
-                "/swagger/v1/swagger.json",
-                "ClaimShield API v1");
-        });
 }
+
+app.UseSwagger();
+
+app.UseSwaggerUI(options =>
+{
+    options.DocumentTitle = "ClaimShield API";
+
+    options.SwaggerEndpoint(
+        "/swagger/v1/swagger.json",
+        "ClaimShield API v1");
+});
 
 // ============================================================
 // HTTPS
 // ============================================================
 
-app.UseHttpsRedirection();
+// Render handles HTTPS.
+// app.UseHttpsRedirection();
 
 // ============================================================
 // CORS
 // ============================================================
 
-app.UseCors(
-    "ClaimShieldPolicy");
+app.UseCors("ClaimShieldPolicy");
 
 // ============================================================
 // AUTHENTICATION

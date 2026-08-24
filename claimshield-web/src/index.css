@@ -235,6 +235,40 @@ label {
   margin-top: 0;
 }
 
+.time-picker-12h {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.time-picker-12h-input {
+  width: 2.6rem;
+  padding: 0.5rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.time-picker-12h-colon {
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.time-picker-12h-period {
+  width: 4.2rem;
+  padding: 0.5rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+
 .location-autocomplete-wrap {
   position: relative;
 }
@@ -1683,7 +1717,7 @@ button:disabled {
 
 .policy-promo-bar-row {
   display: grid;
-  grid-template-columns: 44px 1fr 48px;
+  grid-template-columns: 76px 1fr 48px;
   align-items: center;
   gap: 0.5rem;
 }
@@ -1693,9 +1727,10 @@ button:disabled {
 }
 
 .policy-promo-bar-label {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
   color: var(--color-muted);
+  white-space: nowrap;
 }
 
 .policy-promo-bar-track {

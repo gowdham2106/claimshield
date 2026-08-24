@@ -131,6 +131,33 @@ function formatCurrency(amount: number) {
   return `₹ ${amount.toLocaleString('en-IN')}`
 }
 
+// The Loss Time field displays as separate Hour/Minute/AM-PM pickers
+// (guaranteed 12-hour format, independent of the browser/OS locale)
+// but is stored and submitted internally as a 24-hour "HH:MM" string,
+// since that's what the date/time concatenation and backend expect.
+function to12Hour(time24: string) {
+  if (!time24) {
+    return { hour: '', minute: '', period: 'AM' as 'AM' | 'PM' }
+  }
+
+  const [hStr, mStr] = time24.split(':')
+  const h = Number(hStr)
+  const period: 'AM' | 'PM' = h >= 12 ? 'PM' : 'AM'
+  let hour12 = h % 12
+  if (hour12 === 0) hour12 = 12
+
+  return { hour: String(hour12), minute: mStr ?? '00', period }
+}
+
+function to24Hour(hour12: string, minute: string, period: 'AM' | 'PM') {
+  if (!hour12 || !minute) return ''
+
+  let h = Number(hour12) % 12
+  if (period === 'PM') h += 12
+
+  return `${String(h).padStart(2, '0')}:${minute}`
+}
+
 export function RaiseClaimPage() {
   const navigate = useNavigate()
 
@@ -1003,21 +1030,69 @@ function Step1({
           </div>
 
           <div className="form-field">
-            <label htmlFor="timeOfLoss">
+            <label htmlFor="timeOfLossHour">
               Loss Time <span className="required-asterisk">*</span>
             </label>
 
-            <input
-              id="timeOfLoss"
-              type="time"
-              value={timeOfLoss}
-              onChange={(e) =>
-                setTimeOfLoss(
-                  e.target.value,
-                )
-              }
-              required
-            />
+            <div className="time-picker-12h">
+              <input
+                id="timeOfLossHour"
+                aria-label="Hour"
+                className="time-picker-12h-input"
+                type="text"
+                inputMode="numeric"
+                maxLength={2}
+                placeholder="HH"
+                value={to12Hour(timeOfLoss).hour}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 2)
+                  const clamped =
+                    digits === '' ? '' : String(Math.min(12, Math.max(1, Number(digits))))
+                  const { minute, period } = to12Hour(timeOfLoss)
+                  setTimeOfLoss(to24Hour(clamped || '12', minute || '00', period))
+                }}
+                required
+              />
+
+              <span className="time-picker-12h-colon">:</span>
+
+              <input
+                aria-label="Minute"
+                className="time-picker-12h-input"
+                type="text"
+                inputMode="numeric"
+                maxLength={2}
+                placeholder="MM"
+                value={to12Hour(timeOfLoss).minute}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 2)
+                  const clamped =
+                    digits === '' ? '' : String(Math.min(59, Number(digits))).padStart(2, '0')
+                  const { hour, period } = to12Hour(timeOfLoss)
+                  setTimeOfLoss(to24Hour(hour || '12', clamped || '00', period))
+                }}
+                required
+              />
+
+              <select
+                aria-label="AM or PM"
+                className="time-picker-12h-period"
+                value={to12Hour(timeOfLoss).period}
+                onChange={(e) => {
+                  const { hour, minute } = to12Hour(timeOfLoss)
+                  setTimeOfLoss(
+                    to24Hour(
+                      hour || '12',
+                      minute || '00',
+                      e.target.value as 'AM' | 'PM',
+                    ),
+                  )
+                }}
+              >
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
           </div>
         </div>
 
