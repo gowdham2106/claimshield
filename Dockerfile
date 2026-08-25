@@ -18,6 +18,19 @@ RUN dotnet publish -c Release -o /app/publish --no-restore
 # ---- Runtime stage ----
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+# Tesseract.NET is just a wrapper around the native Tesseract OCR
+# engine and its Leptonica image-processing dependency - neither is
+# included in the base ASP.NET runtime image, so every OCR call was
+# crashing with "Failed to find library libleptonica...so". This
+# installs the actual native libraries the wrapper needs at runtime.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        tesseract-ocr \
+        libtesseract-dev \
+        libleptonica-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/publish .
 
 # Render provides the port to listen on via the PORT env var at

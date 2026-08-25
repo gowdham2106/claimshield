@@ -19,4 +19,15 @@
     <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Tesseract's language data - without this, dotnet publish
+         silently drops the tessdata folder, and TesseractOcrService
+         can't find eng.traineddata at runtime even once the native
+         library itself is present. -->
+    <None Include="tessdata\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
