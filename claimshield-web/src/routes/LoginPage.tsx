@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   ArrowRight,
+  Car,
   Eye,
   EyeOff,
   LockKeyhole,
@@ -11,12 +12,24 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
-const JOURNEY_STEPS = [
-  { time: "1 min", title: "Claim Reported", detail: "FNOL submitted" },
-  { time: "4 min", title: "Damage Assessment", detail: "Damage identified" },
-  { time: "9 min", title: "Coverage Check", detail: "Policy verified" },
-  { time: "22 min", title: "Decision Engine", detail: "Approval decision" },
-  { time: "30 min", title: "Settlement Released", detail: "Compensation paid" },
+// 4 stages for the top stepper (matches the reference: Raise claim ->
+// Smart survey -> Review & approve -> Get paid), labelled Step 1-4
+// instead of time values.
+const STEPPER_STAGES = [
+  { label: "Raise claim", stepLabel: "Step 1" },
+  { label: "Smart survey", stepLabel: "Step 2" },
+  { label: "Review & approve", stepLabel: "Step 3" },
+  { label: "Get paid", stepLabel: "Step 4" },
+];
+
+// 4 tiles at the bottom (matches the reference's Snap the damage / AI
+// assessment / Approval / Settled - "AI" wording kept out per the
+// earlier explicit request, using "Damage Assessment" instead).
+const JOURNEY_TILES = [
+  { step: "STEP 1", title: "Snap the damage", detail: "Four guided angles at the scene." },
+  { step: "STEP 2", title: "Damage Assessment", detail: "Dent, glass or scratch priced in seconds." },
+  { step: "STEP 3", title: "Approval", detail: "Straight-through, no surveyor visit." },
+  { step: "STEP 4", title: "Settled", detail: "Paid to your bank inside 30 minutes." },
 ];
 
 export function LoginPage() {
@@ -36,14 +49,15 @@ export function LoginPage() {
   const [resetError, setResetError] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
 
-  // Cycles the journey tiles through completed -> active -> upcoming,
-  // looping continuously (matches the reference's live progress feel).
-  const [activeJourneyStep, setActiveJourneyStep] = useState(0);
+  // Cycles the stepper AND the tile grid together through all 4
+  // stages, looping continuously - green highlight moves from tile 1
+  // through tile 4 and repeats, matching the requested behavior.
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveJourneyStep((i) => (i + 1) % (JOURNEY_STEPS.length + 1));
-    }, 2000);
+      setActiveStep((i) => (i + 1) % STEPPER_STAGES.length);
+    }, 2200);
 
     return () => clearInterval(interval);
   }, []);
@@ -118,9 +132,8 @@ export function LoginPage() {
     <>
       <style>{`
         /* =========================================================
-           CLAIMSHIELD+ LOGIN — LIGHT SETTLEMENT CONSOLE
-           White/light console (matches the "Motor Claims. Settled
-           Faster." reference) + form as an overlapping card.
+           CLAIMSHIELD+ LOGIN - dark navy console (reverted per team
+           request) + the light login form, unchanged.
            ========================================================= */
 
         * { box-sizing: border-box; }
@@ -128,13 +141,14 @@ export function LoginPage() {
         html, body, #root { margin: 0; width: 100%; min-height: 100%; }
 
         :root {
-          --cs-navy: #071a3a;
+          --cs-navy: #0e1f36;
+          --cs-brand-green: #00d084;
           --cs-blue: #003087;
           --cs-azure: #0ea5ff;
-          --cs-brand-green: #00d084;
+          --cs-navy-line: rgba(255, 255, 255, 0.1);
           --cs-ink: #1a1410;
-          --cs-muted: #667085;
-          --cs-border: #e8eef7;
+          --cs-muted: #6b7280;
+          --cs-border: #e7e2dc;
         }
 
         .cs-login-page {
@@ -143,12 +157,12 @@ export function LoginPage() {
           height: 100dvh;
           display: flex;
           align-items: stretch;
-          background: #ffffff;
+          background: var(--cs-navy);
           overflow: hidden;
         }
 
         /* =====================================================
-           LEFT — light console
+           LEFT - dark console
            ===================================================== */
 
         .cs-console {
@@ -156,264 +170,184 @@ export function LoginPage() {
           min-width: 0;
           display: flex;
           flex-direction: column;
-          padding: 16px 28px 18px;
-          color: var(--cs-navy);
+          padding: 20px 32px 22px;
+          color: #ffffff;
           position: relative;
           overflow: hidden;
-        }
-
-        .cs-console-blob {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(110px);
-          pointer-events: none;
-        }
-
-        .cs-console-blob-one {
-          width: 340px;
-          height: 340px;
-          right: -100px;
-          top: -100px;
-          background: rgba(14, 165, 255, 0.12);
-        }
-
-        .cs-console-blob-two {
-          width: 300px;
-          height: 300px;
-          left: -90px;
-          bottom: -100px;
-          background: rgba(0, 208, 132, 0.1);
         }
 
         .cs-console-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding-bottom: 10px;
-          margin-bottom: 12px;
-          position: relative;
+          padding-bottom: 12px;
+          margin-bottom: 16px;
+          border-bottom: 1px solid var(--cs-navy-line);
         }
 
         .cs-console-brand {
-          font-size: 26px;
-          font-weight: 900;
-          letter-spacing: -0.01em;
-        }
-
-        .cs-console-brand span { color: var(--cs-brand-green); }
-
-        /* Hero: headline + subtitle on the left, circular badge right */
-
-        .cs-hero {
-          display: grid;
-          grid-template-columns: 1.4fr 1fr;
-          gap: 16px;
+          display: inline-flex;
           align-items: center;
-          position: relative;
-        }
-
-        .cs-headline {
-          font-size: clamp(20px, 2vw, 26px);
-          font-weight: 900;
-          line-height: 1.05;
-          margin: 0;
-        }
-
-        .cs-console-sub {
-          margin-top: 6px;
-          max-width: 360px;
-          font-size: 12px;
-          line-height: 1.5;
-          color: var(--cs-muted);
-        }
-
-        .cs-badge-wrap {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-        }
-
-        .cs-badge-circle {
-          position: relative;
-          width: 100px;
-          height: 100px;
-          border-radius: 50%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          background: radial-gradient(
-            circle,
-            rgba(14, 165, 255, 0.16),
-            rgba(0, 208, 132, 0.1),
-            transparent
-          );
-          animation: cs-pulse 4s infinite;
-        }
-
-        @keyframes cs-pulse {
-          50% { transform: scale(1.05); }
-        }
-
-        .cs-badge-number {
-          font-size: 42px;
-          font-weight: 900;
-          line-height: 0.85;
-          background: linear-gradient(135deg, var(--cs-navy), var(--cs-blue), var(--cs-azure), var(--cs-brand-green));
-          background-size: 260%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          animation: cs-gradient-move 7s linear infinite;
-        }
-
-        @keyframes cs-gradient-move {
-          100% { background-position: 260%; }
-        }
-
-        .cs-badge-unit {
-          font-size: 10px;
-          font-weight: 900;
-          letter-spacing: 2px;
-        }
-
-        .cs-badge-caption {
-          margin-top: 4px;
-          font-size: 9.5px;
-          color: var(--cs-muted);
-          line-height: 1.4;
-        }
-
-        /* Comparison card */
-
-        .cs-compare {
-          margin-top: 100px;
-          margin-bottom: 20px;
-          padding: 0px 12px;
-          background: #ffffff;
-          border: 1px solid var(--cs-border);
-          border-radius: 14px;
-          position: relative;
-        }
-
-        .cs-compare-title {
-          font-size: 10px;
-          letter-spacing: 1.2px;
-          color: var(--cs-muted);
-          font-weight: 900;
-          margin-bottom: 8px;
-        }
-
-        .cs-compare-row {
-          display: grid;
-          grid-template-columns: 90px 1fr 60px;
           gap: 8px;
-          align-items: center;
+          font-size: 15px;
+          font-weight: 800;
+        }
+
+        .cs-console-brand svg { color: var(--cs-brand-green); }
+
+        .cs-console-brand-logo {
+          width: 20px;
+          height: 20px;
+          object-fit: contain;
+        }
+
+        .cs-console-eyebrow {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--cs-brand-green);
           margin-bottom: 4px;
         }
 
-        .cs-compare-row:last-child { margin-bottom: 0; }
-
-        .cs-compare-label {
-          font-size: 12.5px;
+        .cs-console-headline {
+          font-size: clamp(36px, 4.4vw, 52px);
           font-weight: 800;
-        }
-
-        .cs-compare-track {
-          display: block;
-          position: relative;
-          height: 10px;
-          border-radius: 999px;
-          background: #edf2f7;
-          overflow: hidden;
-        }
-
-        .cs-compare-fill-industry {
-          display: block;
-          width: 100%;
-          height: 100%;
-          border-radius: 999px;
-          background: #cbd5e1;
-        }
-
-        .cs-compare-fill-shield {
-          display: block;
-          width: 45%;
-          height: 100%;
-          border-radius: 999px;
-          background: linear-gradient(90deg, var(--cs-blue), var(--cs-azure), var(--cs-brand-green));
-        }
-
-        .cs-compare-value {
-          font-size: 12.5px;
-          font-weight: 800;
-        }
-
-        .cs-compare-value.is-green { color: var(--cs-brand-green); }
-
-        /* Journey tiles - live progression indicator, cycles
-           automatically through completed -> active -> upcoming */
-
-        .cs-journey-grid {
-          margin-top: 12px;
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 10px 12px;
-        }
-
-        .cs-journey-tile {
-          min-height: 48px;
-          padding: 5px 4px;
-          border-radius: 9px;
-          border: 1px solid var(--cs-border);
-          background: #ffffff;
-          text-align: center;
-          opacity: 0.4;
-          transition: all 0.6s ease;
-        }
-
-        .cs-journey-tile.is-done {
-          background: #edfff7;
-          border-color: var(--cs-brand-green);
-          color: #00a86b;
-          opacity: 1;
-        }
-
-        .cs-journey-tile.is-active {
-          opacity: 1;
-          color: #ffffff;
-          background: linear-gradient(135deg, var(--cs-blue), var(--cs-azure), var(--cs-brand-green));
-          border-color: transparent;
-          transform: translateY(-4px);
-          box-shadow: 0 10px 24px rgba(0, 48, 135, 0.22);
-        }
-
-        .cs-journey-tile-icon {
-          font-size: 11px;
           line-height: 1;
+          margin: 6px 0 6px;
         }
 
-        .cs-journey-tile-time {
-          font-size: 10.5px;
-          font-weight: 900;
-          margin-top: 1px;
+        .cs-console-sub {
+          font-size: 16px;
+          color: rgba(255, 255, 255, 0.6);
         }
 
-        .cs-journey-tile-title {
-          font-size: 8.5px;
-          font-weight: 800;
-          margin-top: 1px;
+        .cs-console-sub b { color: rgba(255, 255, 255, 0.9); }
+
+        /* Stepper */
+
+        .cs-stepper { margin-top: 50px; margin-bottom: 16px; }
+
+        .cs-stepper-labels {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          margin-bottom: 8px;
         }
 
-        .cs-journey-tile-detail {
-          font-size: 7px;
-          margin-top: 0px;
-          opacity: 0.8;
+        .cs-stepper-labels span {
+          font-size: 12px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.5);
+          transition: color 0.4s ease;
         }
+
+        .cs-stepper-labels span.is-active { color: var(--cs-brand-green); }
+
+        .cs-stepper-track {
+          position: relative;
+          height: 6px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.12);
+          margin-bottom: 6px;
+        }
+
+        .cs-stepper-fill {
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 100%;
+          border-radius: 999px;
+          background: var(--cs-brand-green);
+        }
+
+        .cs-stepper-marker {
+          position: absolute;
+          top: 50%;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: var(--cs-navy);
+          border: 2px solid var(--cs-brand-green);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transform: translate(-50%, -50%);
+        }
+
+        .cs-stepper-marker svg { width: 11px; height: 11px; color: var(--cs-brand-green); }
+
+        .cs-stepper-times {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+        }
+
+        .cs-stepper-times span {
+          font-size: 11px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.4);
+          transition: color 0.4s ease;
+        }
+
+        .cs-stepper-times span.is-active { color: var(--cs-brand-green); }
+
+        /* Tiles */
+
+        .cs-tile-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 8px;
+          margin-top: auto;
+        }
+
+        .cs-tile {
+          padding: 10px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--cs-navy-line);
+          transition: all 0.5s ease;
+        }
+
+        .cs-tile.is-done {
+          background: rgba(0, 208, 132, 0.12);
+          border-color: var(--cs-brand-green);
+        }
+
+        .cs-tile.is-active {
+          background: var(--cs-brand-green);
+          border-color: var(--cs-brand-green);
+          transform: translateY(-3px);
+          box-shadow: 0 10px 22px rgba(0, 208, 132, 0.3);
+        }
+
+        .cs-tile-tag {
+          display: block;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          color: rgba(255, 255, 255, 0.5);
+          margin-bottom: 6px;
+        }
+
+        .cs-tile.is-active .cs-tile-tag { color: rgba(255, 255, 255, 0.85); }
+
+        .cs-tile-title {
+          display: block;
+          font-size: 13px;
+          font-weight: 700;
+          margin-bottom: 3px;
+        }
+
+        .cs-tile-detail {
+          display: block;
+          font-size: 11px;
+          line-height: 1.35;
+          color: rgba(255, 255, 255, 0.55);
+        }
+
+        .cs-tile.is-active .cs-tile-detail { color: rgba(255, 255, 255, 0.9); }
 
         /* =====================================================
-           RIGHT — overlapping white login card
+           RIGHT - login form (unchanged from what's currently live)
            ===================================================== */
 
         .cs-form-area {
@@ -421,18 +355,16 @@ export function LoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 40px 32px;
-          background: #f7faff;
+          padding: 32px;
         }
 
         .cs-login-card {
           width: 100%;
-          max-width: 400px;
-          background: #ffffff;
+          max-width: 380px;
+          background: #fdfcfb;
           border-radius: 16px;
-          padding: 30px;
-          border: 1px solid var(--cs-border);
-          box-shadow: 0 20px 50px rgba(7, 26, 58, 0.1);
+          padding: 26px;
+          box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
         }
 
         .cs-eyebrow {
@@ -446,7 +378,7 @@ export function LoginPage() {
 
         .cs-login-card h1 {
           margin: 0 0 16px;
-          font-size: 22px;
+          font-size: 24px;
           color: var(--cs-ink);
         }
 
@@ -600,7 +532,7 @@ export function LoginPage() {
           padding: 13px;
           border: none;
           border-radius: 10px;
-          background: linear-gradient(90deg, var(--cs-blue), var(--cs-azure), var(--cs-brand-green));
+          background: var(--cs-brand-green);
           color: #ffffff;
           font-size: 14.5px;
           font-weight: 700;
@@ -608,7 +540,7 @@ export function LoginPage() {
         }
 
         .cs-submit:hover:not(:disabled) {
-          background: linear-gradient(90deg, var(--cs-blue), var(--cs-azure), var(--cs-brand-green));
+          background: var(--cs-brand-green);
           filter: brightness(1.06);
         }
         .cs-submit:disabled { opacity: 0.7; cursor: not-allowed; }
@@ -668,88 +600,77 @@ export function LoginPage() {
 
         @media (max-width: 980px) {
           .cs-login-page { flex-direction: column; height: auto; min-height: 100vh; min-height: 100dvh; }
-          .cs-hero { text-align: center; align-items: center; }
-          .cs-badge-wrap { margin: 0 auto; align-items: center; text-align: center; }
           .cs-form-area { flex: none; padding: 24px; }
           .cs-console { padding: 24px; }
-          .cs-journey-grid { grid-template-columns: repeat(2, 1fr); }
+          .cs-tile-grid { grid-template-columns: repeat(2, 1fr); }
         }
       `}</style>
 
       <main className="cs-login-page">
         {/* =====================================================
-            LEFT — light settlement console
+            LEFT - dark settlement console
             ===================================================== */}
         <section className="cs-console">
-          <span className="cs-console-blob cs-console-blob-one" />
-          <span className="cs-console-blob cs-console-blob-two" />
-
           <div className="cs-console-header">
             <span className="cs-console-brand">
-              CLAIM <span>SHIELD+</span>
+              <img src="/claimshield-logo-green.png" alt="" className="cs-console-brand-logo" />
+              CLAIMSHIELD+
             </span>
           </div>
 
-          <div className="cs-hero">
-            <div>
-              <h1 className="cs-headline">
-                Motor Claims.
-                <br />
-                Settled Faster.
-              </h1>
-              <p className="cs-console-sub">
-                Not 5–7 days. Dents, windshield glass and scratches settled
-                while you wait.
-              </p>
+          <div className="cs-console-eyebrow">Fast track OD settlement</div>
+          <h1 className="cs-console-headline">30 min</h1>
+          <p className="cs-console-sub">
+            Not 5-7 days Dents,windshield glass and scratches, settled while you wait
+
+          </p>
+
+          <div className="cs-stepper">
+            <div className="cs-stepper-labels">
+              {STEPPER_STAGES.map((stage, i) => (
+                <span key={stage.label} className={i === activeStep ? "is-active" : ""}>
+                  {stage.label}
+                </span>
+              ))}
             </div>
 
-            <div className="cs-badge-wrap">
-              <div className="cs-badge-circle">
-                <span className="cs-badge-number">30</span>
-                <span className="cs-badge-unit">MINUTES</span>
-              </div>
-              <p className="cs-badge-caption">
-                From Collision To Compensation
-                <br />
-                In Just 30 Minutes
-              </p>
-            </div>
-          </div>
-
-          <div className="cs-compare">
-            <div className="cs-compare-title">SAME CLAIM. TWO TIMELINES.</div>
-
-            <div className="cs-compare-row">
-              <span className="cs-compare-label">Industry</span>
-              <span className="cs-compare-track">
-                <span className="cs-compare-fill-industry" />
-              </span>
-              <span className="cs-compare-value">5–7 Days</span>
+            <div className="cs-stepper-track">
+              <motion.div
+                className="cs-stepper-fill"
+                animate={{ width: `${(activeStep / (STEPPER_STAGES.length - 1)) * 100}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
+              <motion.div
+                className="cs-stepper-marker"
+                animate={{ left: `${(activeStep / (STEPPER_STAGES.length - 1)) * 100}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
+                <Car />
+              </motion.div>
             </div>
 
-            <div className="cs-compare-row">
-              <span className="cs-compare-label">Claim Shield+</span>
-              <span className="cs-compare-track">
-                <span className="cs-compare-fill-shield" />
-              </span>
-              <span className="cs-compare-value is-green">30 Min</span>
+            <div className="cs-stepper-times">
+              {STEPPER_STAGES.map((stage, i) => (
+                <span key={stage.stepLabel} className={i === activeStep ? "is-active" : ""}>
+                  {stage.stepLabel}
+                </span>
+              ))}
             </div>
           </div>
 
-          <div className="cs-journey-grid">
-            {JOURNEY_STEPS.map((step, i) => {
-              const isDone = i < activeJourneyStep
-              const isActive = i === activeJourneyStep
+          <div className="cs-tile-grid">
+            {JOURNEY_TILES.map((tile, i) => {
+              const isDone = i < activeStep
+              const isActive = i === activeStep
 
               return (
                 <div
-                  key={step.title}
-                  className={`cs-journey-tile${isDone ? ' is-done' : ''}${isActive ? ' is-active' : ''}`}
+                  key={tile.title}
+                  className={`cs-tile${isDone ? " is-done" : ""}${isActive ? " is-active" : ""}`}
                 >
-                  <span className="cs-journey-tile-icon">{isDone ? '✓' : '○'}</span>
-                  <div className="cs-journey-tile-time">{step.time}</div>
-                  <div className="cs-journey-tile-title">{step.title}</div>
-                  <div className="cs-journey-tile-detail">{step.detail}</div>
+                  <span className="cs-tile-tag">{tile.step}</span>
+                  <span className="cs-tile-title">{tile.title}</span>
+                  <span className="cs-tile-detail">{tile.detail}</span>
                 </div>
               )
             })}
@@ -757,7 +678,7 @@ export function LoginPage() {
         </section>
 
         {/* =====================================================
-            RIGHT — overlapping login form card
+            RIGHT - login form (unchanged)
             ===================================================== */}
         <section className="cs-form-area">
           <motion.div
@@ -909,7 +830,7 @@ export function LoginPage() {
                         setMode("forgot");
                       }}
                     >
-                      Forgot password?
+                      Reset password
                     </button>
                   </div>
 

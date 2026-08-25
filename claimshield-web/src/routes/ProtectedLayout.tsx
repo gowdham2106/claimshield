@@ -100,7 +100,7 @@ export function ProtectedLayout() {
     return (
       <div className="centered-page">
         <div className="card">
-          <h1>ClaimShield</h1>
+          <h1>ClaimShield+</h1>
 
           <p>
             This portal currently only supports the Customer, Surveyor,
@@ -143,7 +143,7 @@ export function ProtectedLayout() {
               />
             </motion.span>
 
-            <span className="brand-label">ClaimShield</span>
+            <span className="brand-label">ClaimShield+</span>
           </span>
 
           <button

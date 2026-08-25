@@ -7,7 +7,7 @@
   --color-border: #d9dde3;
   --color-text: #1a1d21;
   --color-muted: #5f6672;
-  /* Theme toggle removed per request - fixed permanently to green. */
+  /* Reverted to the earlier darker-green values per request. */
   --color-primary: #3d7d43;
   --color-primary-dark: #295c2d;
   --color-primary-light: #6fa876;
@@ -1106,8 +1106,10 @@ button:disabled {
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.policy-list-card:hover {
+.policy-list-card:hover:not(:disabled) {
+  background: var(--color-surface);
   border-color: var(--color-primary-light);
+  box-shadow: var(--shadow-card-hover);
   transform: translateY(-1px);
 }
 
@@ -1165,7 +1167,8 @@ button:disabled {
   justify-content: center;
   gap: 0.6rem;
   padding: 3rem 1.5rem;
-  border: 1px dashed var(--color-border);
+  background: rgba(164, 204, 145, 0.18);
+  border: 1px dashed var(--color-primary-light);
   border-radius: var(--radius-lg);
   color: var(--color-muted);
   text-align: center;
@@ -1238,7 +1241,7 @@ button:disabled {
 .policy-hero-validity-fill {
   height: 100%;
   border-radius: 6px;
-  background: #ffffff;
+  background: var(--color-surface);
 }
 
 .policy-hero-validity-labels {
@@ -1296,6 +1299,11 @@ button:disabled {
   background: transparent;
   text-align: left;
   cursor: pointer;
+}
+
+.accordion-header:hover:not(:disabled) {
+  background: var(--color-bg);
+  box-shadow: none;
 }
 
 .accordion-icon {
@@ -1595,7 +1603,7 @@ button:disabled {
 .claim-timeline-step.is-current .claim-timeline-dot {
   border-color: var(--color-primary);
   color: var(--color-primary-dark);
-  background: #ffffff;
+  background: var(--color-surface);
   box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.14);
 }
 
@@ -1767,7 +1775,7 @@ button:disabled {
   height: 40px;
   margin-top: 1rem;
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--color-surface);
   color: var(--color-primary-dark);
   font-size: 0.82rem;
   font-weight: 700;
@@ -2174,7 +2182,7 @@ button:disabled {
   align-items: center;
   padding: 0.65rem 1.3rem;
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--color-surface);
   color: var(--color-primary-dark);
   font-weight: 700;
   text-decoration: none;
@@ -2913,7 +2921,7 @@ button:disabled {
   top: 0.4rem;
   right: 0.4rem;
   color: var(--color-primary);
-  background: #ffffff;
+  background: var(--color-surface);
   border-radius: 50%;
 }
 
@@ -3096,7 +3104,7 @@ button:disabled {
   gap: 1rem;
   padding: 0.7rem 1rem;
   border-radius: var(--radius);
-  background: #ffffff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
 }
 
@@ -3208,7 +3216,7 @@ button:disabled {
 
 .raise-claim-draft-button {
   margin: 0.75rem 0 0;
-  background: #ffffff;
+  background: var(--color-surface);
   color: var(--color-primary-dark);
   border: 1px solid var(--color-border);
   box-shadow: none;
@@ -3380,7 +3388,7 @@ button:disabled {
   height: 34px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--color-surface);
   color: var(--color-primary);
 }
 
@@ -3491,7 +3499,7 @@ button:disabled {
   height: 44px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--color-surface);
   color: var(--color-primary);
 }
 
@@ -3543,7 +3551,7 @@ button:disabled {
 }
 
 .assessment-surveyor-button {
-  background: #ffffff;
+  background: var(--color-surface);
   color: var(--color-text);
   border: 1px solid var(--color-border);
 }
@@ -3758,7 +3766,7 @@ button:disabled {
 }
 
 .bank-secondary-button {
-  background: #ffffff;
+  background: var(--color-surface);
   color: var(--color-text);
   border: 1px solid var(--color-border);
 }
@@ -5150,7 +5158,7 @@ button:disabled {
 
   border-radius: 24px;
 
-  background: #ffffff;
+  background: var(--color-surface);
 
   box-shadow:
     0 25px 70px rgba(15, 35, 70, 0.16),
@@ -5323,7 +5331,7 @@ button:disabled {
 .login-form input:focus {
   border-color: #1769ff;
 
-  background: #ffffff;
+  background: var(--color-surface);
 
   box-shadow:
     0 0 0 3px rgba(23, 105, 255, 0.10);
@@ -5495,7 +5503,7 @@ button:disabled {
   border: 1px solid #1769ff !important;
   border-radius: 12px;
 
-  background: #ffffff !important;
+  background: var(--color-surface) !important;
 
   color: #145cff !important;
 
@@ -5597,7 +5605,7 @@ button:disabled {
 }
 
 .login-top-action:hover {
-  background: #ffffff;
+  background: var(--color-surface);
 
   border-color: #bdc8da;
 
