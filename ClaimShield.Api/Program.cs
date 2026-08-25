@@ -645,12 +645,36 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// ============================================================
-// RUN
-// ============================================================
 app.MapGet("/", () => Results.Ok(new
 {
     message = "ClaimShield API is running",
     status = "healthy"
 }));
+
+app.MapGet("/api/diagnostics/ocr-libs", () =>
+{
+    var searchDirs = new[] { "/usr/lib/x86_64-linux-gnu", "/usr/lib", "/usr/local/lib" };
+    var found = new List<string>();
+
+    foreach (var dir in searchDirs)
+    {
+        if (!Directory.Exists(dir)) continue;
+
+        found.AddRange(
+            Directory.GetFiles(dir, "liblept*.so*", SearchOption.TopDirectoryOnly));
+        found.AddRange(
+            Directory.GetFiles(dir, "libtesseract*.so*", SearchOption.TopDirectoryOnly));
+    }
+
+    var expectedLeptonica = "/usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so";
+    var expectedTesseract = "/usr/lib/x86_64-linux-gnu/libtesseract50.so";
+
+    return Results.Ok(new
+    {
+        allFoundFiles = found,
+        expectedLeptonicaExists = System.IO.File.Exists(expectedLeptonica),
+        expectedTesseractExists = System.IO.File.Exists(expectedTesseract),
+    });
+});
+
 app.Run();
