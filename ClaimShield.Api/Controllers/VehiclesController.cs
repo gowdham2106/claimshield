@@ -121,6 +121,44 @@ namespace ClaimShield.Api.Controllers
             return Ok(new { Message = "Vehicle updated successfully." });
         }
 
+        // =========================================================
+        // CONFIRM OCR-CAPTURED CHASSIS/ENGINE NUMBERS
+        // PUT: api/Vehicles/{id}/confirm-ocr-details
+        // =========================================================
+        //
+        // Customer-safe (not Admin-only, unlike the full Update above)
+        // - only ever touches ChassisNumber/EngineNumber, called from
+        // the Raise Claim wizard's "Captured details" popup once the
+        // customer confirms what OCR read off their uploaded RC photo.
+        // =========================================================
+
+        [HttpPut("{id:guid}/confirm-ocr-details")]
+        public async Task<IActionResult> ConfirmOcrDetails(
+            Guid id,
+            ConfirmVehicleOcrDetailsRequest request)
+        {
+            var vehicle = await _vehicleService.GetVehicleByIdAsync(id);
+
+            if (vehicle == null)
+            {
+                return NotFound();
+            }
+
+            if (!IsAdmin &&
+                !await OwnsCustomerAsync(vehicle.CustomerId))
+            {
+                return Forbidden(
+                    "You are not authorized to update this vehicle.");
+            }
+
+            if (!await _vehicleService.ConfirmOcrDetailsAsync(id, request))
+            {
+                return NotFound();
+            }
+
+            return Ok(new { Message = "Vehicle details updated successfully." });
+        }
+
         [HttpDelete("{id:guid}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Delete(Guid id)
