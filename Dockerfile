@@ -29,7 +29,10 @@ RUN apt-get update \
         tesseract-ocr \
         libtesseract-dev \
         libleptonica-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sf /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so \
+    && ln -sf /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 /usr/lib/x86_64-linux-gnu/libtesseract50.so \
+    && ldconfig
 
 COPY --from=build /app/publish .
 
