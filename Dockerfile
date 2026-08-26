@@ -36,6 +36,13 @@ RUN apt-get update \
 
 COPY --from=build /app/publish .
 
+# Tesseract's native loader (InteropDotNet) checks the app's own base
+# directory for these libraries, the same way it looks for DLLs
+# sitting next to the .exe on Windows - a system-wide symlink alone
+# isn't enough. Placing the real files directly in /app covers that.
+RUN cp /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 /app/libleptonica-1.82.0.so \
+    && cp /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 /app/libtesseract50.so
+
 # Render provides the port to listen on via the PORT env var at
 # container start (not build time) - so this has to be expanded by a
 # shell at runtime, not baked in with a plain ENV/EXPOSE instruction.

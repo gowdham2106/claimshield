@@ -663,7 +663,7 @@ app.MapGet("/", () => Results.Ok(new
 // ------------------------------------------------------------
 app.MapGet("/api/diagnostics/ocr-libs", () =>
 {
-    var searchDirs = new[] { "/usr/lib/x86_64-linux-gnu", "/usr/lib", "/usr/local/lib" };
+    var searchDirs = new[] { "/usr/lib/x86_64-linux-gnu", "/usr/lib", "/usr/local/lib", "/app" };
     var found = new List<string>();
 
     foreach (var dir in searchDirs)
@@ -678,12 +678,17 @@ app.MapGet("/api/diagnostics/ocr-libs", () =>
 
     var expectedLeptonica = "/usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so";
     var expectedTesseract = "/usr/lib/x86_64-linux-gnu/libtesseract50.so";
+    var expectedLeptonicaInApp = "/app/libleptonica-1.82.0.so";
+    var expectedTesseractInApp = "/app/libtesseract50.so";
 
     return Results.Ok(new
     {
         allFoundFiles = found,
         expectedLeptonicaExists = System.IO.File.Exists(expectedLeptonica),
         expectedTesseractExists = System.IO.File.Exists(expectedTesseract),
+        expectedLeptonicaExistsInApp = System.IO.File.Exists(expectedLeptonicaInApp),
+        expectedTesseractExistsInApp = System.IO.File.Exists(expectedTesseractInApp),
+        appBaseDirectory = AppContext.BaseDirectory,
     });
 });
 
