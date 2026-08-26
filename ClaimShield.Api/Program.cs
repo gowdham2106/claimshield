@@ -645,12 +645,22 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// ============================================================
+// RUN
+// ============================================================
 app.MapGet("/", () => Results.Ok(new
 {
     message = "ClaimShield API is running",
     status = "healthy"
 }));
 
+// ------------------------------------------------------------
+// TEMPORARY diagnostic endpoint - lets us check directly in a
+// browser which native OCR library files actually exist on the
+// deployed server, instead of digging through Render's logs.
+// Safe to remove once the Tesseract library issue is confirmed
+// fixed.
+// ------------------------------------------------------------
 app.MapGet("/api/diagnostics/ocr-libs", () =>
 {
     var searchDirs = new[] { "/usr/lib/x86_64-linux-gnu", "/usr/lib", "/usr/local/lib" };
