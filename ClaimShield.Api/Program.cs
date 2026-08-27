@@ -568,10 +568,30 @@ builder.Services.AddCors(
             "ClaimShieldPolicy",
             policy =>
             {
+                // Explicitly list the methods and headers used by the
+                // frontend so that preflight (OPTIONS) requests receive
+                // a valid Access-Control-Allow-Methods /
+                // Access-Control-Allow-Headers response.
+                //
+                // Note: AllowCredentials() cannot be combined with
+                // AllowAnyOrigin() per the CORS spec (the browser will
+                // reject the response). Since we still need to allow
+                // any origin for now, credentials are left disabled.
+                // If cookie-based auth is required in the future, swap
+                // AllowAnyOrigin() for WithOrigins(...) and enable
+                // AllowCredentials().
                 policy
                     .AllowAnyOrigin()
-                    .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .WithMethods(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "OPTIONS")
+                    .WithHeaders(
+                        "Content-Type",
+                        "Authorization")
+                    .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
             });
     });
 
