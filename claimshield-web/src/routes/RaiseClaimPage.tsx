@@ -944,7 +944,7 @@ function Step1({
         </div>
 
         <div className="form-field">
-          <label>Type of Loss <span className="required-asterisk">*</span></label>
+          <label>Incident type <span className="required-asterisk">*</span></label>
 
           <div className="loss-type-cards">
             {Object.entries(
