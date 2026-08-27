@@ -32,7 +32,14 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so \
     && ln -sf /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 /usr/lib/x86_64-linux-gnu/libtesseract50.so \
-    && ldconfig
+    && ldconfig \
+    && echo "=== ldd on leptonica (checking for missing dependencies) ===" \
+    && ldd /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 || true \
+    && echo "=== ldd on tesseract (checking for missing dependencies) ===" \
+    && ldd /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 || true \
+    && echo "=== file type check (architecture) ===" \
+    && file /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 || true \
+    && file /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 || true
 
 COPY --from=build /app/publish .
 

@@ -167,8 +167,10 @@ namespace ClaimShield.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> Upload([
-            FromForm] UploadClaimDocumentRequest request)
+        public async Task<IActionResult> Upload(
+            [FromForm] Guid claimId,
+            [FromForm] int documentTypeId,
+            [FromForm] IFormFile file)
         {
             if (!_currentUserService.UserId.HasValue)
             {
@@ -177,7 +179,7 @@ namespace ClaimShield.Api.Controllers
             }
 
             if (!await _claimDocumentService.CanUserAccessClaimAsync(
-                    request.ClaimId,
+                    claimId,
                     _currentUserService.UserId.Value,
                     CurrentRoleId))
             {
@@ -187,10 +189,10 @@ namespace ClaimShield.Api.Controllers
 
             var (success, error, document) =
                 await _claimDocumentService.UploadAsync(
-                    request.ClaimId,
-                    request.DocumentTypeId,
+                    claimId,
+                    documentTypeId,
                     _currentUserService.UserId.Value,
-                    request.File);
+                    file);
 
             if (!success)
             {
