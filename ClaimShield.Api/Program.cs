@@ -14,6 +14,8 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -207,6 +209,16 @@ builder.Services.AddSwaggerGen(options =>
                 Array.Empty<string>()
             }
         });
+
+    // Support file uploads and [FromForm] bindings in Swagger UI
+    options.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
+    options.MapType<IEnumerable<IFormFile>>(() => new OpenApiSchema
+    {
+        Type = "array",
+        Items = new OpenApiSchema { Type = "string", Format = "binary" }
+    });
+
+    options.OperationFilter<ClaimShield.Api.Extensions.FormFileOperationFilter>();
 });
 
 // ============================================================
