@@ -141,10 +141,16 @@ export function LoginPage() {
         html, body, #root { margin: 0; width: 100%; min-height: 100%; }
 
         :root {
-          --cs-navy: #0e1f36;
-          --cs-brand-green: #00d084;
-          --cs-blue: #003087;
-          --cs-azure: #0ea5ff;
+          --cs-navy: #123B4A;
+          --cs-brand-green: #008284;
+          --cs-timeline-green: #2E9B62;
+          --cs-gold: #D99A18;
+          --cs-gold-soft: rgba(217, 154, 24, 0.35);
+          --cs-teal-1: #123B4A;
+          --cs-teal-2: #005758;
+          --cs-teal-3: #008284;
+          --cs-teal-4: #66b3b5;
+          --cs-teal-5: #E8F6F5;
           --cs-navy-line: rgba(255, 255, 255, 0.1);
           --cs-ink: #1a1410;
           --cs-muted: #6b7280;
@@ -157,8 +163,26 @@ export function LoginPage() {
           height: 100dvh;
           display: flex;
           align-items: stretch;
-          background: var(--cs-navy);
+          background: var(--cs-teal-1);
           overflow: hidden;
+          position: relative;
+        }
+
+        .cs-login-page::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          opacity: 0.5;
+          z-index: 0;
+          background-image:
+            repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 34px),
+            repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 34px);
+        }
+
+        .cs-login-page > * {
+          position: relative;
+          z-index: 1;
         }
 
         /* =====================================================
@@ -176,13 +200,39 @@ export function LoginPage() {
           overflow: hidden;
         }
 
+        .cs-console::after {
+          content: '';
+          position: absolute;
+          top: -20%;
+          right: -10%;
+          width: 60%;
+          height: 60%;
+          pointer-events: none;
+          background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%);
+        }
+
+        .cs-console > * {
+          position: relative;
+          z-index: 1;
+        }
+
         .cs-console-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding-bottom: 12px;
           margin-bottom: 16px;
-          border-bottom: 1px solid var(--cs-navy-line);
+          position: relative;
+        }
+
+        .cs-console-header::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 1px;
+          background: linear-gradient(90deg, var(--cs-gold-soft) 0%, rgba(255, 255, 255, 0.08) 40%, transparent 100%);
         }
 
         .cs-console-brand {
@@ -206,7 +256,7 @@ export function LoginPage() {
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: var(--cs-brand-green);
+          color: var(--cs-gold);
           margin-bottom: 4px;
         }
 
@@ -215,11 +265,13 @@ export function LoginPage() {
           font-weight: 800;
           line-height: 1;
           margin: 6px 0 6px;
+          text-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+          letter-spacing: -0.01em;
         }
 
         .cs-console-sub {
           font-size: 16px;
-          color: rgba(255, 255, 255, 0.6);
+          color: rgba(255, 255, 255, 0.85);
         }
 
         .cs-console-sub b { color: rgba(255, 255, 255, 0.9); }
@@ -237,11 +289,11 @@ export function LoginPage() {
         .cs-stepper-labels span {
           font-size: 12px;
           font-weight: 700;
-          color: rgba(255, 255, 255, 0.5);
+          color: rgba(255, 255, 255, 0.78);
           transition: color 0.4s ease;
         }
 
-        .cs-stepper-labels span.is-active { color: var(--cs-brand-green); }
+        .cs-stepper-labels span.is-active { color: var(--cs-timeline-green); }
 
         .cs-stepper-track {
           position: relative;
@@ -257,7 +309,8 @@ export function LoginPage() {
           left: 0;
           height: 100%;
           border-radius: 999px;
-          background: var(--cs-brand-green);
+          background: var(--cs-timeline-green);
+          box-shadow: 0 0 12px rgba(46, 155, 98, 0.55);
         }
 
         .cs-stepper-marker {
@@ -267,14 +320,15 @@ export function LoginPage() {
           height: 20px;
           border-radius: 50%;
           background: var(--cs-navy);
-          border: 2px solid var(--cs-brand-green);
+          border: 2px solid var(--cs-timeline-green);
+          box-shadow: 0 0 14px rgba(46, 155, 98, 0.6);
           display: flex;
           align-items: center;
           justify-content: center;
           transform: translate(-50%, -50%);
         }
 
-        .cs-stepper-marker svg { width: 11px; height: 11px; color: var(--cs-brand-green); }
+        .cs-stepper-marker svg { width: 11px; height: 11px; color: var(--cs-timeline-green); }
 
         .cs-stepper-times {
           display: grid;
@@ -284,11 +338,11 @@ export function LoginPage() {
         .cs-stepper-times span {
           font-size: 11px;
           font-weight: 700;
-          color: rgba(255, 255, 255, 0.4);
+          color: rgba(255, 255, 255, 0.72);
           transition: color 0.4s ease;
         }
 
-        .cs-stepper-times span.is-active { color: var(--cs-brand-green); }
+        .cs-stepper-times span.is-active { color: var(--cs-timeline-green); }
 
         /* Tiles */
 
@@ -302,21 +356,22 @@ export function LoginPage() {
         .cs-tile {
           padding: 10px;
           border-radius: 12px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--cs-navy-line);
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
           transition: all 0.5s ease;
         }
 
         .cs-tile.is-done {
-          background: rgba(0, 208, 132, 0.12);
-          border-color: var(--cs-brand-green);
+          background: rgba(0, 128, 128, 0.18);
+          border-color: rgba(102, 179, 179, 0.5);
         }
 
         .cs-tile.is-active {
-          background: var(--cs-brand-green);
-          border-color: var(--cs-brand-green);
+          background: linear-gradient(135deg, var(--cs-teal-3) 0%, var(--cs-teal-2) 100%);
+          border-color: var(--cs-gold-soft);
           transform: translateY(-3px);
-          box-shadow: 0 10px 22px rgba(0, 208, 132, 0.3);
+          box-shadow: 0 14px 28px rgba(0, 87, 88, 0.45), 0 0 0 1px var(--cs-gold-soft);
         }
 
         .cs-tile-tag {
@@ -324,7 +379,7 @@ export function LoginPage() {
           font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.05em;
-          color: rgba(255, 255, 255, 0.5);
+          color: rgba(255, 255, 255, 0.8);
           margin-bottom: 6px;
         }
 
@@ -341,7 +396,7 @@ export function LoginPage() {
           display: block;
           font-size: 11px;
           line-height: 1.35;
-          color: rgba(255, 255, 255, 0.55);
+          color: rgba(255, 255, 255, 0.82);
         }
 
         .cs-tile.is-active .cs-tile-detail { color: rgba(255, 255, 255, 0.9); }
@@ -364,7 +419,22 @@ export function LoginPage() {
           background: #fdfcfb;
           border-radius: 16px;
           padding: 26px;
-          box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+          position: relative;
+          box-shadow:
+            0 30px 70px rgba(18, 59, 74, 0.35),
+            0 8px 24px rgba(18, 59, 74, 0.18),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .cs-login-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 16px;
+          right: 16px;
+          height: 3px;
+          border-radius: 0 0 3px 3px;
+          background: linear-gradient(90deg, var(--cs-gold) 0%, #f4e5b8 50%, var(--cs-gold) 100%);
         }
 
         .cs-eyebrow {
@@ -470,7 +540,7 @@ export function LoginPage() {
         .cs-password-button:hover:not(:disabled) {
           background: transparent;
           box-shadow: none;
-          color: var(--cs-azure);
+          color: var(--cs-teal-4);
         }
 
         .cs-field-error {
@@ -510,13 +580,13 @@ export function LoginPage() {
           border: none;
           font-size: 12px;
           font-weight: 700;
-          color: var(--cs-blue);
+          color: var(--cs-teal-2);
           text-decoration: underline;
           flex-shrink: 0;
           cursor: pointer;
         }
 
-        .cs-forgot-link:hover { color: var(--cs-azure); }
+        .cs-forgot-link:hover { color: var(--cs-teal-4); }
 
         .cs-error {
           font-size: 12px;
@@ -532,15 +602,17 @@ export function LoginPage() {
           padding: 13px;
           border: none;
           border-radius: 10px;
-          background: var(--cs-brand-green);
+          background: linear-gradient(135deg, var(--cs-teal-3) 0%, var(--cs-teal-2) 100%);
           color: #ffffff;
           font-size: 14.5px;
           font-weight: 700;
           cursor: pointer;
+          box-shadow: 0 10px 24px rgba(0, 130, 132, 0.35);
         }
 
         .cs-submit:hover:not(:disabled) {
-          background: var(--cs-brand-green);
+          background: linear-gradient(135deg, var(--cs-teal-3) 0%, var(--cs-teal-2) 100%);
+          box-shadow: 0 14px 30px rgba(0, 130, 132, 0.45);
           filter: brightness(1.06);
         }
         .cs-submit:disabled { opacity: 0.7; cursor: not-allowed; }
@@ -574,7 +646,7 @@ export function LoginPage() {
         .cs-track-button:hover:not(:disabled) {
           background: #f7faff;
           box-shadow: none;
-          border-color: var(--cs-azure);
+          border-color: var(--cs-teal-4);
         }
 
         .cs-forgot-sent {
@@ -591,7 +663,7 @@ export function LoginPage() {
           width: 48px;
           height: 48px;
           border-radius: 50%;
-          background: rgba(0, 208, 132, 0.1);
+          background: rgba(46, 155, 98, 0.1);
           color: var(--cs-brand-green);
           margin-bottom: 4px;
         }

@@ -2,23 +2,31 @@
   color-scheme: light;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  --color-bg: #f5f6f8;
-  --color-surface: #ffffff;
-  --color-border: #d9dde3;
-  --color-text: #1a1d21;
-  --color-muted: #5f6672;
-  /* Reverted to the earlier darker-green values per request. */
-  --color-primary: #3d7d43;
-  --color-primary-dark: #295c2d;
-  --color-primary-light: #6fa876;
-  --color-primary-rgb: 61, 125, 67;
-  --color-teal: #3d7fd6;
-  --color-teal-deep: #2b5fa8;
-  --color-teal-rgb: 61, 127, 214;
-  --color-error: #b3261e;
-  --color-success: #1e7e34;
+  /* Primary colours */
+  --color-primary: #008284;      /* Primary Teal */
+  --color-primary-dark: #005758; /* Dark Teal */
+  --color-navy: #123B4A;
+  --color-primary-light: #E8F6F5; /* Light Teal */
+  --color-primary-rgb: 0, 130, 132;
+
+  /* Neutral colours */
+  --color-text: #123B4A;    /* Text Primary */
+  --color-muted: #64748B;   /* Text Secondary */
+  --color-border: #D6E5E5;  /* Border */
+  --color-bg: #F5FAFA;      /* Background */
+  --color-surface: #FFFFFF; /* Card */
+
+  /* Semantic colours (status) */
+  --color-success: #2E9B62;
+  --color-warning: #D99A18;
+  --color-attention: #E67E22;
+  --color-error: #C94B4B;
+  --color-info: #3578A8;
+
+  --color-teal: #008284;
+  --color-teal-deep: #005758;
+  --color-teal-rgb: 0, 130, 132;
   --color-navy-deep: #0a1930;
-  --color-navy: #122a52;
   --radius: 8px;
   --radius-lg: 14px;
   --shadow-card: 0 1px 2px rgba(20, 24, 30, 0.04), 0 8px 24px rgba(20, 24, 30, 0.06);
@@ -443,8 +451,8 @@ button:disabled {
   position: sticky;
   top: 0;
   height: 100vh;
-  background: var(--color-primary);
-  box-shadow: 4px 0 24px rgba(8, 28, 56, 0.16);
+  background: linear-gradient(180deg, var(--color-navy) 0%, var(--color-primary-dark) 45%, var(--color-primary) 100%);
+  box-shadow: 4px 0 24px rgba(18, 59, 74, 0.20);
   z-index: 10;
   transition: width 0.2s ease;
   overflow: hidden;
