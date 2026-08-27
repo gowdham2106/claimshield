@@ -47,8 +47,13 @@ COPY --from=build /app/publish .
 # directory for these libraries, the same way it looks for DLLs
 # sitting next to the .exe on Windows - a system-wide symlink alone
 # isn't enough. Placing the real files directly in /app covers that.
+# It also mirrors the NuGet package's Windows convention of an "x64"
+# subfolder next to the app, so we cover that exact path too.
 RUN cp /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 /app/libleptonica-1.82.0.so \
-    && cp /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 /app/libtesseract50.so
+    && cp /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 /app/libtesseract50.so \
+    && mkdir -p /app/x64 \
+    && cp /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 /app/x64/libleptonica-1.82.0.so \
+    && cp /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 /app/x64/libtesseract50.so
 
 # Render provides the port to listen on via the PORT env var at
 # container start (not build time) - so this has to be expanded by a

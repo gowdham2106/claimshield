@@ -680,6 +680,8 @@ app.MapGet("/api/diagnostics/ocr-libs", () =>
     var expectedTesseract = "/usr/lib/x86_64-linux-gnu/libtesseract50.so";
     var expectedLeptonicaInApp = "/app/libleptonica-1.82.0.so";
     var expectedTesseractInApp = "/app/libtesseract50.so";
+    var expectedLeptonicaInX64 = "/app/x64/libleptonica-1.82.0.so";
+    var expectedTesseractInX64 = "/app/x64/libtesseract50.so";
 
     return Results.Ok(new
     {
@@ -688,6 +690,8 @@ app.MapGet("/api/diagnostics/ocr-libs", () =>
         expectedTesseractExists = System.IO.File.Exists(expectedTesseract),
         expectedLeptonicaExistsInApp = System.IO.File.Exists(expectedLeptonicaInApp),
         expectedTesseractExistsInApp = System.IO.File.Exists(expectedTesseractInApp),
+        expectedLeptonicaExistsInX64 = System.IO.File.Exists(expectedLeptonicaInX64),
+        expectedTesseractExistsInX64 = System.IO.File.Exists(expectedTesseractInX64),
         appBaseDirectory = AppContext.BaseDirectory,
     });
 });
