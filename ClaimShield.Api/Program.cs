@@ -569,7 +569,7 @@ builder.Services.AddCors(
             policy =>
             {
                 policy
-                    .AllowAnyOrigin()
+                    .SetIsOriginAllowed(_ => true)
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });
@@ -581,6 +581,12 @@ builder.Services.AddCors(
 
 var app =
     builder.Build();
+
+// ============================================================
+// CORS (Must run first before static files, auth, & routing)
+// ============================================================
+
+app.UseCors("ClaimShieldPolicy");
 
 // ============================================================
 // DEFAULT FILES
@@ -620,12 +626,6 @@ app.UseSwaggerUI(options =>
 
 // Render handles HTTPS.
 // app.UseHttpsRedirection();
-
-// ============================================================
-// CORS
-// ============================================================
-
-app.UseCors("ClaimShieldPolicy");
 
 // ============================================================
 // AUTHENTICATION
