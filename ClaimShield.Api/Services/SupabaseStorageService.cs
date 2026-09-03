@@ -29,7 +29,7 @@ namespace ClaimShield.Api.Services
                 configuration["Supabase:ServiceRoleKey"];
 
             var bucket =
-                configuration["Supabase:DocumentsBucket"];
+                configuration["Supabase:DocumentsBucket"] ?? "claim-documents";
 
             if (string.IsNullOrWhiteSpace(supabaseUrl))
             {
@@ -41,12 +41,6 @@ namespace ClaimShield.Api.Services
             {
                 throw new InvalidOperationException(
                     "Supabase:ServiceRoleKey is not configured.");
-            }
-
-            if (string.IsNullOrWhiteSpace(bucket))
-            {
-                throw new InvalidOperationException(
-                    "Supabase:DocumentsBucket is not configured.");
             }
 
             _bucket = bucket;

@@ -30,8 +30,8 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<ClaimShieldDbContext>(
     options =>
         options.UseNpgsql(
-            builder.Configuration.GetConnectionString(
-                "SupabaseConnection"),
+            builder.Configuration.GetConnectionString("SupabaseConnection")
+                ?? builder.Configuration.GetConnectionString("DefaultConnection"),
             npgsqlOptions => npgsqlOptions.EnableRetryOnFailure()
         )
 );
