@@ -19,6 +19,9 @@ RUN dotnet publish -c Release -o /app/publish --no-restore
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
+# Prevent inotify limit crash on container platforms (Render, Railway, etc.)
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+
 # Tesseract.NET is just a wrapper around the native Tesseract OCR
 # engine and its Leptonica image-processing dependency - neither is
 # included in the base ASP.NET runtime image, so every OCR call was
@@ -32,14 +35,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so \
     && ln -sf /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 /usr/lib/x86_64-linux-gnu/libtesseract50.so \
-    && ldconfig \
-    && echo "=== ldd on leptonica (checking for missing dependencies) ===" \
-    && ldd /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 || true \
-    && echo "=== ldd on tesseract (checking for missing dependencies) ===" \
-    && ldd /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 || true \
-    && echo "=== file type check (architecture) ===" \
-    && file /usr/lib/x86_64-linux-gnu/liblept.so.5.0.4 || true \
-    && file /usr/lib/x86_64-linux-gnu/libtesseract.so.5.0.3 || true
+    && ldconfig
 
 COPY --from=build /app/publish .
 
